@@ -879,6 +879,23 @@
                 });
         }
 
+        function formatExteriorSizes(exteriorSizesJson, type) {
+            if (!exteriorSizesJson) return '';
+            
+            try {
+                const sizes = JSON.parse(exteriorSizesJson);
+                if (sizes[type] && sizes[type].length > 0) {
+                    return ' <small>(' + sizes[type].map((size, index) => 
+                        `${size} m²`
+                    ).join(', ') + ')</small>';
+                }
+            } catch (e) {
+                console.error('Erreur parsing exteriorSizes:', e);
+            }
+            
+            return '';
+        }
+
         function displayDetails(est) {
             const propertyTypeLabels = {
                 'appartement': 'Appartement',
@@ -925,10 +942,12 @@
                     
                     <div class="detail-section">
                         <h4>🏡 Extérieurs</h4>
-                        <p><strong>Balcons:</strong> ${est.balconies || 0}</p>
-                        <p><strong>Terrasses:</strong> ${est.terraces || 0}</p>
-                        <p><strong>Parking:</strong> ${est.parking || 0}</p>
-                        ${est.garden ? `<p><strong>Jardin:</strong> ${est.garden === 'yes' ? 'Oui' : 'Non'}</p>` : ''}
+                        <p><strong>Balcons:</strong> ${est.balconsCount || 0}${formatExteriorSizes(est.exteriorSizes, 'balcons')}</p>
+                        <p><strong>Terrasses:</strong> ${est.terrassesCount || 0}${formatExteriorSizes(est.exteriorSizes, 'terrasses')}</p>
+                        <p><strong>Caves:</strong> ${est.cavesCount || 0}</p>
+                        <p><strong>Garages:</strong> ${est.garagesCount || 0}</p>
+                        <p><strong>Boxes:</strong> ${est.boxesCount || 0}</p>
+                        <p><strong>Parking:</strong> ${est.parkingCount || 0}</p>
                     </div>
                     
                     <div class="detail-section">

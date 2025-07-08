@@ -98,7 +98,16 @@ router.post('/estimate', [
     }
     
     const data = req.body;
-    const { city, postalCode } = extractCityFromAddress(data.address);
+    
+    // Utiliser d'abord la ville fournie par Google Places, sinon extraire depuis l'adresse
+    let city = data.city;
+    let postalCode = data.postalCode;
+    
+    if (!city) {
+        const extracted = extractCityFromAddress(data.address);
+        city = extracted.city;
+        postalCode = postalCode || extracted.postalCode;
+    }
     
     const query = `
         SELECT pricePerSqm FROM price_data 
@@ -130,13 +139,37 @@ router.post('/estimate', [
                 estimatedPrice, estimatedPriceMax, pricePerSqm,
                 city, postalCode,
                 balconsCount, terrassesCount, cavesCount, garagesCount, boxesCount, parkingCount,
-                elevator, multiFloor, workNeeded, importantWorkTypes, refreshmentWorkTypes
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                elevator, multiFloor, workNeeded, importantWorkTypes, refreshmentWorkTypes,
+                exteriorSizes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         
         // Process work types arrays to strings
         const importantWorkTypes = data.importantWorkTypes ? (Array.isArray(data.importantWorkTypes) ? data.importantWorkTypes.join(',') : data.importantWorkTypes) : null;
         const refreshmentWorkTypes = data.refreshmentWorkTypes ? (Array.isArray(data.refreshmentWorkTypes) ? data.refreshmentWorkTypes.join(',') : data.refreshmentWorkTypes) : null;
+        
+        // Collecter les tailles des extérieurs
+        const exteriorSizes = {};
+        
+        // Balcons
+        for (let i = 1; i <= (data.balconsCount || 0); i++) {
+            const size = data[`balconsSize${i}`];
+            if (size) {
+                if (!exteriorSizes.balcons) exteriorSizes.balcons = [];
+                exteriorSizes.balcons.push(parseFloat(size));
+            }
+        }
+        
+        // Terrasses
+        for (let i = 1; i <= (data.terrassesCount || 0); i++) {
+            const size = data[`terrassesSize${i}`];
+            if (size) {
+                if (!exteriorSizes.terrasses) exteriorSizes.terrasses = [];
+                exteriorSizes.terrasses.push(parseFloat(size));
+            }
+        }
+        
+        const exteriorSizesJson = Object.keys(exteriorSizes).length > 0 ? JSON.stringify(exteriorSizes) : null;
         
         db.run(insertQuery, [
             data.address, data.propertyType, data.surface, 
@@ -148,7 +181,8 @@ router.post('/estimate', [
             data.balconsCount || 0, data.terrassesCount || 0, data.cavesCount || 0, 
             data.garagesCount || 0, data.boxesCount || 0, data.parkingCount || 0,
             data.elevator || null, data.multiFloor || null, data.workNeeded || null,
-            importantWorkTypes, refreshmentWorkTypes
+            importantWorkTypes, refreshmentWorkTypes,
+            exteriorSizesJson
         ], function(err) {
             if (err) {
                 console.error('Erreur sauvegarde:', err);

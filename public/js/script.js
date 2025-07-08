@@ -616,7 +616,29 @@ function showResult(estimation) {
             const continueBtn = document.createElement('button');
             continueBtn.className = 'continue-btn btn btn-primary';
             continueBtn.textContent = 'Continuer';
-            continueBtn.style.marginTop = '1rem';
+            continueBtn.style.cssText = `
+                margin-top: 1rem;
+                padding: 0.75rem 2rem;
+                background-color: #667eea;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                width: 100%;
+            `;
+            continueBtn.onmouseover = () => {
+                continueBtn.style.backgroundColor = '#5a5fc4';
+                continueBtn.style.transform = 'translateY(-2px)';
+                continueBtn.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.3)';
+            };
+            continueBtn.onmouseout = () => {
+                continueBtn.style.backgroundColor = '#667eea';
+                continueBtn.style.transform = 'translateY(0)';
+                continueBtn.style.boxShadow = 'none';
+            };
             continueBtn.onclick = () => {
                 closeModal();
                 showThankYouPage();
