@@ -1027,16 +1027,18 @@ main {
     width: 100%;
     height: 100%;
     background-color: rgba(0,0,0,0.5);
+    overflow-y: auto;
 }
 
 .modal-content {
     background-color: white;
-    margin: 15% auto;
+    margin: 5% auto;
     padding: 2rem;
     border-radius: 15px;
     width: 90%;
     max-width: 500px;
     text-align: center;
+    position: relative;
 }
 
 .loader {
@@ -1094,6 +1096,30 @@ main {
 
 .close-btn:hover {
     background: #5a6268;
+}
+
+/* Modal styles */
+.close-btn {
+    background: #667eea;
+    color: white;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 1.5rem;
+}
+
+.close-btn:hover {
+    background: #5a6fd8;
+    transform: translateY(-2px);
+}
+
+/* Prevent body scroll when modal is open */
+body.modal-open {
+    overflow: hidden;
 }
 
 footer {

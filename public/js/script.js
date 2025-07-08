@@ -470,11 +470,13 @@ function showResult(estimation) {
     `;
     
     document.getElementById('resultModal').style.display = 'block';
+    document.body.classList.add('modal-open');
 }
 
 function closeModal() {
     document.getElementById('resultModal').style.display = 'none';
     document.getElementById('loadingModal').style.display = 'none';
+    document.body.classList.remove('modal-open');
 }
 
 function selectPartnerOption(choice) {
