@@ -1,0 +1,160 @@
+const express = require('express');
+const { body, validationResult } = require('express-validator');
+const { db } = require('../database/init');
+
+const router = express.Router();
+
+const extractCityFromAddress = (address) => {
+    const parts = address.split(',');
+    const lastPart = parts[parts.length - 1].trim();
+    
+    const postalCodeMatch = lastPart.match(/(\d{5})/);
+    const postalCode = postalCodeMatch ? postalCodeMatch[1] : null;
+    
+    let city = lastPart.replace(/\d{5}/, '').trim();
+    
+    if (city.toLowerCase().includes('paris')) {
+        city = 'Paris';
+    } else if (city.toLowerCase().includes('lyon')) {
+        city = 'Lyon';
+    } else if (city.toLowerCase().includes('marseille')) {
+        city = 'Marseille';
+    } else if (city.toLowerCase().includes('toulouse')) {
+        city = 'Toulouse';
+    } else if (city.toLowerCase().includes('nice')) {
+        city = 'Nice';
+    } else if (city.toLowerCase().includes('nantes')) {
+        city = 'Nantes';
+    } else if (city.toLowerCase().includes('strasbourg')) {
+        city = 'Strasbourg';
+    } else if (city.toLowerCase().includes('montpellier')) {
+        city = 'Montpellier';
+    } else if (city.toLowerCase().includes('bordeaux')) {
+        city = 'Bordeaux';
+    } else if (city.toLowerCase().includes('lille')) {
+        city = 'Lille';
+    } else if (city.toLowerCase().includes('rennes')) {
+        city = 'Rennes';
+    }
+    
+    return { city, postalCode };
+};
+
+const calculateEstimation = (data, pricePerSqm) => {
+    let basePrice = pricePerSqm * parseInt(data.surface);
+    
+    const conditionMultipliers = {
+        'excellent': 1.1,
+        'bon': 1.0,
+        'moyen': 0.9,
+        'a-renover': 0.8
+    };
+    
+    const conditionMultiplier = conditionMultipliers[data.condition] || 1.0;
+    basePrice *= conditionMultiplier;
+    
+    if (data.year) {
+        const currentYear = new Date().getFullYear();
+        const age = currentYear - parseInt(data.year);
+        
+        if (age < 5) {
+            basePrice *= 1.05;
+        } else if (age > 30) {
+            basePrice *= 0.95;
+        }
+    }
+    
+    const variance = 0.1;
+    const minPrice = Math.round(basePrice * (1 - variance));
+    const maxPrice = Math.round(basePrice * (1 + variance));
+    
+    return {
+        estimatedPrice: minPrice,
+        estimatedPriceMax: maxPrice,
+        pricePerSqm: Math.round(pricePerSqm * conditionMultiplier)
+    };
+};
+
+router.post('/estimate', [
+    body('address').trim().isLength({ min: 5 }).withMessage('Adresse requise'),
+    body('propertyType').isIn(['appartement', 'maison', 'terrain', 'immeuble', 'commerce']).withMessage('Type de bien invalide'),
+    body('surface').isInt({ min: 10, max: 10000 }).withMessage('Surface invalide'),
+    body('rooms').optional(),
+    body('bedrooms').optional(),
+    body('floor').optional(),
+    body('condition').isIn(['excellent', 'bon', 'moyen', 'a-renover']).withMessage('État invalide'),
+    body('firstName').trim().isLength({ min: 2 }).withMessage('Prénom requis'),
+    body('lastName').trim().isLength({ min: 2 }).withMessage('Nom requis'),
+    body('email').isEmail().withMessage('Email invalide'),
+    body('phone').trim().isLength({ min: 10 }).withMessage('Téléphone requis')
+], (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            success: false,
+            message: 'Données invalides',
+            errors: errors.array()
+        });
+    }
+    
+    const data = req.body;
+    const { city, postalCode } = extractCityFromAddress(data.address);
+    
+    const query = `
+        SELECT pricePerSqm FROM price_data 
+        WHERE city = ? AND propertyType = ? 
+        ORDER BY 
+            CASE WHEN postalCode = ? THEN 0 ELSE 1 END,
+            lastUpdated DESC 
+        LIMIT 1
+    `;
+    
+    db.get(query, [city, data.propertyType, postalCode], (err, row) => {
+        if (err) {
+            console.error('Erreur base de données:', err);
+            return res.status(500).json({
+                success: false,
+                message: 'Erreur serveur'
+            });
+        }
+        
+        let pricePerSqm = row ? row.pricePerSqm : 3000;
+        
+        const estimation = calculateEstimation(data, pricePerSqm);
+        
+        const insertQuery = `
+            INSERT INTO estimations (
+                address, propertyType, surface, rooms, bedrooms, floor, dpe, 
+                condition, estimationReason, projectTimeline, year,
+                firstName, lastName, email, phone,
+                estimatedPrice, estimatedPriceMax, pricePerSqm,
+                city, postalCode
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        
+        db.run(insertQuery, [
+            data.address, data.propertyType, data.surface, 
+            data.rooms || null, data.bedrooms || null, data.floor || null, data.dpe || null,
+            data.condition, data.estimationReason || null, data.projectTimeline || null, data.year || null,
+            data.firstName, data.lastName, data.email, data.phone,
+            estimation.estimatedPrice, estimation.estimatedPriceMax, estimation.pricePerSqm,
+            city, postalCode
+        ], function(err) {
+            if (err) {
+                console.error('Erreur sauvegarde:', err);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Erreur lors de la sauvegarde'
+                });
+            }
+            
+            res.json({
+                success: true,
+                estimation: estimation,
+                message: 'Estimation calculée avec succès'
+            });
+        });
+    });
+});
+
+module.exports = router;
