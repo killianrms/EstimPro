@@ -88,6 +88,19 @@ app.get('/mentions-legales', (req, res) => {
     res.sendFile(path.join(publicPath, 'mentions-legales.html'));
 });
 
+// Serve Google Maps script with API key from environment
+app.get('/api/google-maps-script', (req, res) => {
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+    res.type('application/javascript');
+    res.send(`
+        const script = document.createElement('script');
+        script.src = 'https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initAutocomplete';
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+    `);
+});
+
 initDatabase().then(() => {
     app.listen(PORT, () => {
         console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
