@@ -9,7 +9,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run dev` - Start development server with nodemon for auto-restart
 
 ### Dependencies
-- `npm install` - Install all dependencies
+- `npm install` - Install all dependencies (automatically initializes SQLite database via postinstall)
+- `npm run build` - Placeholder script (no build step currently required)
+
+### Database
+- Database auto-initializes on `npm install` via `postinstall` script
+- Manual initialization: `node server/database/init.js`
+- SQLite database files are gitignored - each deployment starts fresh
 
 ## Architecture Overview
 
@@ -71,9 +77,12 @@ This is a French real estate estimation web application ("EstimPro") built with 
 
 **Environment Variables:**
 - `PORT` - Server port (default: 3000)
+- `NODE_ENV` - Set to "development" or "production"
 - `SESSION_SECRET` - Session secret for production
 - `ADMIN_USERNAME` - Admin username (default: admin)
 - `ADMIN_PASSWORD_HASH` - Bcrypt hash of admin password
+  - Generate hash: `node -e "console.log(require('bcryptjs').hashSync('your_password', 10))"`
+- `GOOGLE_PLACES_API_KEY` - Required for address autocomplete functionality
 
 ### Google Places Integration
 
@@ -86,3 +95,31 @@ The application integrates with Google Places API for address autocomplete. Conf
 - Frontend uses vanilla JavaScript with no framework dependencies
 - Admin panel requires authentication but has no user registration flow
 - All text and UI is in French as this is a French real estate application
+
+## Deployment
+
+**Supported Platforms:**
+- Railway: Configuration in `railway.json` (NIXPACKS builder, auto-restart on failure)
+- Render: Configuration in `render.yaml` (auto-generates SESSION_SECRET)
+- PM2 (for VPS deployment):
+  ```bash
+  pm2 start server/app.js --name "estimpro"
+  pm2 startup
+  pm2 save
+  ```
+
+## Development Roadmap
+
+Key priorities from TODO.md:
+- **Testing**: No tests currently exist - Jest for unit tests and Cypress for E2E tests are planned
+- **TypeScript Migration**: Future consideration for better type safety
+- **ML Integration**: Plans to integrate machine learning for more accurate price predictions
+- **Enhanced Admin Features**: Chart.js visualizations, multi-admin support, email notifications
+- **Additional Property Criteria**: Transport proximity, sun exposure, view quality
+- **Multi-language Support**: Currently French-only, internationalization planned
+
+## Repository Information
+
+- **GitHub**: https://github.com/killianrms/EstimPro
+- **Author**: Killian (killianrms)
+- **License**: MIT

@@ -168,3 +168,5 @@ function extractCityFromAddress(address) {
 }
 
 window.initAutocomplete = initAutocomplete;
+window.validateAddress = validateAddress;
+window.getAddressData = getAddressData;
