@@ -35,7 +35,7 @@ router.get('/estimations', (req, res) => {
         whereClause = 'WHERE ' + filters.join(' AND ');
     }
     
-    const validSortColumns = ['createdAt', 'firstName', 'lastName', 'city', 'propertyType', 'status', 'estimatedPrice'];
+    const validSortColumns = ['createdAt', 'firstName', 'lastName', 'city', 'propertyType', 'status', 'estimatedPrice', 'surface', 'phone', 'email'];
     const sortColumn = validSortColumns.includes(sortBy) ? sortBy : 'createdAt';
     const order = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
     
@@ -105,10 +105,13 @@ router.get('/stats', (req, res) => {
 router.get('/export', (req, res) => {
     const query = `
         SELECT 
-            id, address, propertyType, surface, rooms, condition, year,
+            id, address, propertyType, surface, rooms, bedrooms, floor, dpe, condition, year,
             firstName, lastName, email, phone,
             estimatedPrice, estimatedPriceMax, pricePerSqm,
-            city, postalCode, createdAt
+            city, postalCode, 
+            balconsCount, terrassesCount, cavesCount, garagesCount, boxesCount, parkingCount,
+            elevator, multiFloor, workNeeded, importantWorkTypes, refreshmentWorkTypes,
+            estimationReason, projectTimeline, status, notes, createdAt
         FROM estimations 
         ORDER BY createdAt DESC
     `;
@@ -124,7 +127,10 @@ router.get('/export', (req, res) => {
             'Adresse': row.address,
             'Type': row.propertyType,
             'Surface (m²)': row.surface,
-            'Pièces': row.rooms,
+            'Pièces': row.rooms || 'N/A',
+            'Chambres': row.bedrooms || 'N/A',
+            'Étage': row.floor || 'N/A',
+            'DPE': row.dpe || 'N/A',
             'État': row.condition,
             'Année': row.year || 'N/A',
             'Prénom': row.firstName,
@@ -136,6 +142,21 @@ router.get('/export', (req, res) => {
             'Prix au m²': row.pricePerSqm,
             'Ville': row.city,
             'Code postal': row.postalCode,
+            'Balcons': row.balconsCount || 0,
+            'Terrasses': row.terrassesCount || 0,
+            'Caves': row.cavesCount || 0,
+            'Garages': row.garagesCount || 0,
+            'Boxes': row.boxesCount || 0,
+            'Places parking': row.parkingCount || 0,
+            'Ascenseur': row.elevator || 'N/A',
+            'Multi-étages': row.multiFloor || 'N/A',
+            'Travaux': row.workNeeded || 'N/A',
+            'Travaux importants': row.importantWorkTypes || 'N/A',
+            'Travaux rafraîchissement': row.refreshmentWorkTypes || 'N/A',
+            'Raison estimation': row.estimationReason || 'N/A',
+            'Délai projet': row.projectTimeline || 'N/A',
+            'Statut': row.status || 'nouveau',
+            'Notes': row.notes || '',
             'Date création': row.createdAt
         })));
         
@@ -206,6 +227,24 @@ router.get('/cities', (req, res) => {
         }
         
         res.json({ success: true, cities: rows.map(row => row.city) });
+    });
+});
+
+// Obtenir les détails complets d'une estimation
+router.get('/estimation/:id', (req, res) => {
+    const id = req.params.id;
+    
+    db.get('SELECT * FROM estimations WHERE id = ?', [id], (err, row) => {
+        if (err) {
+            console.error('Erreur récupération estimation:', err);
+            return res.status(500).json({ success: false, message: 'Erreur serveur' });
+        }
+        
+        if (!row) {
+            return res.status(404).json({ success: false, message: 'Estimation non trouvée' });
+        }
+        
+        res.json({ success: true, estimation: row });
     });
 });
 

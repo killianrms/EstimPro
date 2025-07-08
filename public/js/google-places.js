@@ -70,10 +70,11 @@ function extractAddressComponents(components) {
             result.route = component.long_name;
         }
         if (types.includes('locality')) {
+            result.city = component.long_name;
             result.locality = component.long_name;
         }
         if (types.includes('administrative_area_level_2')) {
-            result.city = component.long_name;
+            result.department = component.long_name;
         }
         if (types.includes('administrative_area_level_1')) {
             result.region = component.long_name;

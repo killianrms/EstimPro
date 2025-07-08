@@ -128,9 +128,15 @@ router.post('/estimate', [
                 condition, estimationReason, projectTimeline, year,
                 firstName, lastName, email, phone,
                 estimatedPrice, estimatedPriceMax, pricePerSqm,
-                city, postalCode
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                city, postalCode,
+                balconsCount, terrassesCount, cavesCount, garagesCount, boxesCount, parkingCount,
+                elevator, multiFloor, workNeeded, importantWorkTypes, refreshmentWorkTypes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
+        
+        // Process work types arrays to strings
+        const importantWorkTypes = data.importantWorkTypes ? (Array.isArray(data.importantWorkTypes) ? data.importantWorkTypes.join(',') : data.importantWorkTypes) : null;
+        const refreshmentWorkTypes = data.refreshmentWorkTypes ? (Array.isArray(data.refreshmentWorkTypes) ? data.refreshmentWorkTypes.join(',') : data.refreshmentWorkTypes) : null;
         
         db.run(insertQuery, [
             data.address, data.propertyType, data.surface, 
@@ -138,7 +144,11 @@ router.post('/estimate', [
             data.condition, data.estimationReason || null, data.projectTimeline || null, data.year || null,
             data.firstName, data.lastName, data.email, data.phone,
             estimation.estimatedPrice, estimation.estimatedPriceMax, estimation.pricePerSqm,
-            city, postalCode
+            city, postalCode,
+            data.balconsCount || 0, data.terrassesCount || 0, data.cavesCount || 0, 
+            data.garagesCount || 0, data.boxesCount || 0, data.parkingCount || 0,
+            data.elevator || null, data.multiFloor || null, data.workNeeded || null,
+            importantWorkTypes, refreshmentWorkTypes
         ], function(err) {
             if (err) {
                 console.error('Erreur sauvegarde:', err);

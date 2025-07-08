@@ -251,6 +251,11 @@
             background: #dc3545;
             color: white;
         }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
 
         .pagination {
             display: flex;
@@ -274,11 +279,13 @@
 
         .modal-content {
             background-color: #fefefe;
-            margin: 15% auto;
+            margin: 5% auto;
             padding: 20px;
             border-radius: 8px;
-            width: 80%;
-            max-width: 500px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .close {
@@ -314,6 +321,115 @@
         .form-group textarea {
             resize: vertical;
             min-height: 100px;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .detail-section {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .detail-section h4 {
+            margin: 0 0 1rem 0;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .detail-section p {
+            margin: 0.5rem 0;
+            color: #555;
+        }
+
+        .detail-section strong {
+            color: #333;
+        }
+
+        .price-range {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1976d2;
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: #138496;
+        }
+        
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .detail-section {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 6px;
+        }
+        
+        .detail-section h4 {
+            margin: 0 0 0.75rem 0;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-weight: 500;
+            color: #666;
+        }
+        
+        .detail-value {
+            color: #333;
+            text-align: right;
+        }
+        
+        .price-highlight {
+            background: #e3f2fd;
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        
+        .price-highlight h4 {
+            margin: 0 0 0.5rem 0;
+            color: #1976d2;
+        }
+        
+        .price-range {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1976d2;
+        }
+        
+        @media (max-width: 768px) {
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -383,11 +499,12 @@
                     <thead>
                         <tr>
                             <th class="sortable" data-sort="createdAt">Date</th>
-                            <th class="sortable" data-sort="firstName">Nom</th>
+                            <th class="sortable" data-sort="lastName">Nom</th>
+                            <th class="sortable" data-sort="firstName">Prénom</th>
+                            <th class="sortable" data-sort="phone">Téléphone</th>
+                            <th class="sortable" data-sort="email">Email</th>
                             <th class="sortable" data-sort="city">Ville</th>
                             <th class="sortable" data-sort="propertyType">Type</th>
-                            <th class="sortable" data-sort="surface">Surface</th>
-                            <th class="sortable" data-sort="estimatedPrice">Prix estimé</th>
                             <th class="sortable" data-sort="status">Statut</th>
                             <th>Actions</th>
                         </tr>
@@ -399,6 +516,17 @@
             </div>
             <div class="pagination" id="pagination">
                 <!-- Pagination will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour voir les détails -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="close" onclick="closeDetailsModal()">&times;</span>
+            <h3>Détails de l'estimation</h3>
+            <div id="detailsContent">
+                <!-- Details will be loaded here -->
             </div>
         </div>
     </div>
@@ -429,6 +557,20 @@
             </form>
         </div>
     </div>
+    
+    <!-- Modal pour voir les détails -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeDetailsModal()">&times;</span>
+            <h3>Détails de l'estimation</h3>
+            <div id="detailsContent">
+                <!-- Le contenu sera chargé dynamiquement -->
+            </div>
+            <div class="filter-actions" style="margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" onclick="closeDetailsModal()">Fermer</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         let currentPage = 1;
@@ -442,7 +584,23 @@
             loadEstimations();
             setupSorting();
             setupStatusForm();
+            setupModalCloseEvents();
         });
+        
+        // Fermeture des modals en cliquant en dehors
+        function setupModalCloseEvents() {
+            window.onclick = function(event) {
+                const statusModal = document.getElementById('statusModal');
+                const detailsModal = document.getElementById('detailsModal');
+                
+                if (event.target == statusModal) {
+                    closeStatusModal();
+                }
+                if (event.target == detailsModal) {
+                    closeDetailsModal();
+                }
+            }
+        }
 
         // Chargement des statistiques
         function loadStats() {
@@ -531,23 +689,35 @@
 
         function displayEstimations(estimations) {
             const tbody = document.getElementById('estimationsTableBody');
-            tbody.innerHTML = estimations.map(est => `
+            tbody.innerHTML = estimations.map(est => {
+                // Format property type labels
+                const propertyTypeLabels = {
+                    'appartement': 'Appartement',
+                    'maison': 'Maison',
+                    'terrain': 'Terrain',
+                    'immeuble': 'Immeuble',
+                    'commerce': 'Commerce'
+                };
+                
+                return `
                 <tr>
                     <td>${new Date(est.createdAt).toLocaleDateString('fr-FR')}</td>
-                    <td>${est.firstName} ${est.lastName}</td>
+                    <td>${est.lastName}</td>
+                    <td>${est.firstName}</td>
+                    <td>${est.phone}</td>
+                    <td>${est.email}</td>
                     <td>${est.city || 'N/A'}</td>
-                    <td>${est.propertyType}</td>
-                    <td>${est.surface} m²</td>
-                    <td>${est.estimatedPrice.toLocaleString('fr-FR')} - ${est.estimatedPriceMax.toLocaleString('fr-FR')} €</td>
+                    <td>${propertyTypeLabels[est.propertyType] || est.propertyType}</td>
                     <td><span class="status-badge status-${est.status || 'nouveau'}">${getStatusLabel(est.status || 'nouveau')}</span></td>
                     <td>
                         <div class="actions">
+                            <button class="btn btn-sm btn-info" onclick="viewDetails(${est.id})">Voir détails</button>
                             <button class="btn btn-sm btn-warning" onclick="changeStatus(${est.id})">Statut</button>
                             <button class="btn btn-sm btn-danger" onclick="deleteEstimation(${est.id})">Suppr.</button>
                         </div>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
 
         function getStatusLabel(status) {
@@ -690,6 +860,102 @@
         // Export
         function exportData() {
             window.open('/api/admin/export', '_blank');
+        }
+
+        // Voir les détails
+        function viewDetails(id) {
+            fetch(`/api/admin/estimation/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayDetails(data.estimation);
+                    } else {
+                        alert('Erreur: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de la récupération des détails');
+                });
+        }
+
+        function displayDetails(est) {
+            const propertyTypeLabels = {
+                'appartement': 'Appartement',
+                'maison': 'Maison',
+                'terrain': 'Terrain',
+                'immeuble': 'Immeuble',
+                'commerce': 'Commerce'
+            };
+
+            const conditionLabels = {
+                'excellent': 'Excellent',
+                'bon': 'Bon',
+                'moyen': 'Moyen',
+                'renover': 'À rénover'
+            };
+
+            const detailsContent = document.getElementById('detailsContent');
+            detailsContent.innerHTML = `
+                <div class="details-grid">
+                    <div class="detail-section">
+                        <h4>👤 Informations personnelles</h4>
+                        <p><strong>Nom:</strong> ${est.lastName}</p>
+                        <p><strong>Prénom:</strong> ${est.firstName}</p>
+                        <p><strong>Email:</strong> ${est.email}</p>
+                        <p><strong>Téléphone:</strong> ${est.phone}</p>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h4>🏠 Informations du bien</h4>
+                        <p><strong>Adresse:</strong> ${est.address}</p>
+                        <p><strong>Ville:</strong> ${est.city}</p>
+                        <p><strong>Code postal:</strong> ${est.postalCode || 'N/A'}</p>
+                        <p><strong>Type de bien:</strong> ${propertyTypeLabels[est.propertyType] || est.propertyType}</p>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h4>📐 Caractéristiques</h4>
+                        <p><strong>Surface:</strong> ${est.surface} m²</p>
+                        <p><strong>Nombre de pièces:</strong> ${est.rooms}</p>
+                        <p><strong>État:</strong> ${conditionLabels[est.condition] || est.condition}</p>
+                        <p><strong>Année construction:</strong> ${est.year || 'N/A'}</p>
+                        ${est.floor ? `<p><strong>Étage:</strong> ${est.floor}</p>` : ''}
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h4>🏡 Extérieurs</h4>
+                        <p><strong>Balcons:</strong> ${est.balconies || 0}</p>
+                        <p><strong>Terrasses:</strong> ${est.terraces || 0}</p>
+                        <p><strong>Parking:</strong> ${est.parking || 0}</p>
+                        ${est.garden ? `<p><strong>Jardin:</strong> ${est.garden === 'yes' ? 'Oui' : 'Non'}</p>` : ''}
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h4>⚡ DPE</h4>
+                        <p><strong>Classe énergétique:</strong> ${est.dpe || 'N/A'}</p>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h4>💰 Estimation</h4>
+                        <p class="price-range">${est.estimatedPrice.toLocaleString('fr-FR')} - ${est.estimatedPriceMax.toLocaleString('fr-FR')} €</p>
+                        <p><strong>Prix au m²:</strong> ${est.pricePerSqm.toLocaleString('fr-FR')} €</p>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h4>📅 Informations système</h4>
+                        <p><strong>Date de création:</strong> ${new Date(est.createdAt).toLocaleDateString('fr-FR')}</p>
+                        <p><strong>Statut:</strong> ${getStatusLabel(est.status || 'nouveau')}</p>
+                        ${est.notes ? `<p><strong>Notes:</strong> ${est.notes}</p>` : ''}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('detailsModal').style.display = 'block';
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').style.display = 'none';
         }
     </script>
 </body>
