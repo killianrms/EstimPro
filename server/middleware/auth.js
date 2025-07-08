@@ -25,6 +25,8 @@ const requireAuth = (req, res, next) => {
     const isAdminRoute = req.originalUrl.startsWith('/admin') || req.originalUrl.startsWith('/api/admin');
     
     if (isAdminRoute && !req.session.isAuthenticated) {
+        console.log('Auth check - URL:', req.originalUrl, 'Session:', req.session);
+        
         if (req.originalUrl.startsWith('/api/')) {
             return res.status(401).json({ 
                 success: false, 

@@ -30,9 +30,21 @@ router.post('/login',
                 req.session.username = username;
                 req.session.loginTime = new Date();
                 
-                res.json({
-                    success: true,
-                    message: 'Connexion réussie'
+                // Force save session before sending response
+                req.session.save((err) => {
+                    if (err) {
+                        console.error('Erreur sauvegarde session:', err);
+                        return res.status(500).json({
+                            success: false,
+                            message: 'Erreur lors de la sauvegarde de la session'
+                        });
+                    }
+                    
+                    console.log('Session saved:', req.session);
+                    res.json({
+                        success: true,
+                        message: 'Connexion réussie'
+                    });
                 });
             } else {
                 res.status(401).json({
@@ -60,7 +72,7 @@ router.post('/logout', (req, res) => {
             });
         }
         
-        res.clearCookie('connect.sid');
+        res.clearCookie('estimpro.sid');
         res.json({
             success: true,
             message: 'Déconnexion réussie'

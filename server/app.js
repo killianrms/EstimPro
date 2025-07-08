@@ -44,10 +44,13 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // Changed to false to fix redirect issues on Render
         httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000 // 24 heures
-    }
+        maxAge: 24 * 60 * 60 * 1000, // 24 heures
+        sameSite: 'lax'
+    },
+    name: 'estimpro.sid',
+    proxy: true // Trust proxy for Render
 }));
 
 app.use(cors());
