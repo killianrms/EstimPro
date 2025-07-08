@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstimPro - Estimation immobilière gratuite en ligne</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/google-places.js"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDFMvHHUM5_ljqpiHieI272ybcOs0fgzgA&libraries=places&callback=initAutocomplete"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <h1>EstimPro</h1>
+            </div>
+            <div class="nav-links">
+                <a href="#features">Fonctionnalités</a>
+                <a href="#about">À propos</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h2>Estimez votre bien immobilier gratuitement</h2>
+                <p>Obtenez une estimation précise de votre appartement ou maison en quelques minutes</p>
+                <div class="trust-indicators">
+                    <span>🏠 Milliers d'estimations réalisées</span>
+                    <span>⭐ 4.9/5 de satisfaction</span>
+                    <span>🔒 100% gratuit et sans engagement</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="estimation-form">
+            <div class="form-container">
+                <div class="form-header">
+                    <h3>Commencez votre estimation</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressBar"></div>
+                    </div>
+                    <p class="step-indicator">Étape <span id="currentStep">1</span> sur 9</p>
+                </div>
+
+                <form id="estimationForm">
+                    <div class="form-step active" id="step1">
+                        <h4>Où se situe votre bien ?</h4>
+                        <div class="input-group">
+                            <label for="address">Adresse complète</label>
+                            <input type="text" id="address" name="address" placeholder="Commencez à taper votre adresse..." required autocomplete="off">
+                            <div id="address-suggestions" class="address-suggestions"></div>
+                        </div>
+                        <button type="button" class="next-btn" onclick="nextStep()">Suivant</button>
+                    </div>
+
+                    <div class="form-step" id="step2">
+                        <h4>Quel type de bien ?</h4>
+                        <div class="property-types">
+                            <div class="property-type" data-value="appartement">
+                                <div class="icon">🏢</div>
+                                <span>Appartement</span>
+                            </div>
+                            <div class="property-type" data-value="maison">
+                                <div class="icon">🏠</div>
+                                <span>Maison</span>
+                            </div>
+                            <div class="property-type" data-value="terrain">
+                                <div class="icon">🌳</div>
+                                <span>Terrain</span>
+                            </div>
+                            <div class="property-type" data-value="immeuble">
+                                <div class="icon">🏬</div>
+                                <span>Immeuble</span>
+                            </div>
+                            <div class="property-type" data-value="commerce">
+                                <div class="icon">🏪</div>
+                                <span>Commerce</span>
+                            </div>
+                        </div>
+                        <input type="hidden" id="propertyType" name="propertyType" required>
+                        <div class="form-buttons">
+                            <button type="button" class="prev-btn" onclick="prevStep()">Précédent</button>
+                            <button type="button" class="next-btn" onclick="nextStep()">Suivant</button>
+                        </div>
+                    </div>
+
+                    <div class="form-step" id="step3">
+                        <h4>Caractéristiques de votre bien</h4>
+                        
+                        <div class="characteristics-grid">
+                            <div class="input-group">
+                                <label for="surface">Surface en m²</label>
+                                <input type="number" id="surface" name="surface" placeholder="Ex: 75" min="10" max="10000" required>
+                            </div>
+                            
+                            <div class="input-group" id="roomsGroup">
+                                <label for="rooms">Nombre de pièces</label>
+                                <select id="rooms" name="rooms" required>
+                                    <option value="">Sélectionnez</option>
+                                    <option value="1">1 pièce</option>
+                                    <option value="2">2 pièces</option>
+                                    <option value="3">3 pièces</option>
+                                    <option value="4">4 pièces</option>
+                                    <option value="5">5 pièces</option>
+                                    <option value="6">6 pièces</option>
+                                    <option value="7">7 pièces</option>
+                                    <option value="8">8 pièces</option>
+                                    <option value="9+">9 pièces et +</option>
+                                </select>
+                            </div>
+                            
+                            <div class="input-group" id="bedroomsGroup">
+                                <label for="bedrooms">Nombre de chambres (≥ 9m²)</label>
+                                <select id="bedrooms" name="bedrooms">
+                                    <option value="">Sélectionnez</option>
+                                    <option value="0">0 chambre</option>
+                                    <option value="1">1 chambre</option>
+                                    <option value="2">2 chambres</option>
+                                    <option value="3">3 chambres</option>
+                                    <option value="4">4 chambres</option>
+                                    <option value="5">5 chambres</option>
+                                    <option value="6+">6 chambres et +</option>
+                                </select>
+                            </div>
+                            
+                            <div class="input-group" id="floorGroup">
+                                <label for="floor" id="floorLabel">Étage</label>
+                                <select id="floor" name="floor">
+                                    <option value="0">Rez-de-chaussée</option>
+                                    <option value="1">1er étage</option>
+                                    <option value="2">2ème étage</option>
+                                    <option value="3">3ème étage</option>
+                                    <option value="4">4ème étage</option>
+                                    <option value="5">5ème étage</option>
+                                    <option value="6">6ème étage</option>
+                                    <option value="7+">7ème étage et +</option>
+                                </select>
+                            </div>
+                            
+                            <div class="input-group" id="multiFloorGroup" style="display: none;">
+                                <label>La maison a-t-elle plusieurs étages ?</label>
+                                <div class="elevator-options">
+                                    <div class="elevator-option" data-value="oui">
+                                        <span class="elevator-icon">🏠</span>
+                                        <span>Oui</span>
+                                    </div>
+                                    <div class="elevator-option" data-value="non">
+                                        <span class="elevator-icon">🏡</span>
+                                        <span>Non</span>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="multiFloor" name="multiFloor">
+                            </div>
+                            
+                            <div class="input-group" id="elevatorGroup">
+                                <label>Y a-t-il un ascenseur ?</label>
+                                <div class="elevator-options">
+                                    <div class="elevator-option" data-value="oui">
+                                        <span class="elevator-icon">🛗</span>
+                                        <span>Oui</span>
+                                    </div>
+                                    <div class="elevator-option" data-value="non">
+                                        <span class="elevator-icon">🚶</span>
+                                        <span>Non</span>
+                                    </div>
+                                    <div class="elevator-option" data-value="na">
+                                        <span class="elevator-icon">❓</span>
+                                        <span>Non applicable</span>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="elevator" name="elevator">
+                            </div>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="button" class="prev-btn" onclick="prevStep()">Précédent</button>
+                            <button type="button" class="next-btn" onclick="nextStep()">Suivant</button>
+                        </div>
+                    </div>
+
+                    <div class="form-step" id="step3">
+                        <h4>Travaux à prévoir</h4>
+                        
+                        <div class="work-container">
+                            <div class="input-group">
+                                <label>Y a-t-il des travaux à prévoir ?</label>
+                                <div class="work-need-options">
+                                    <div class="work-need-option" data-value="non">
+                                        <div class="work-icon">✅</div>
+                                        <span>Non, aucun travaux</span>
+                                        <small>Le bien est en parfait état</small>
+                                    </div>
+                                    <div class="work-need-option" data-value="rafraichissement">
+                                        <div class="work-icon">🎨</div>
+                                        <span>Travaux de rafraîchissement</span>
+                                        <small>Peinture, petites rénovations</small>
+                                    </div>
+                                    <div class="work-need-option" data-value="importants">
+                                        <div class="work-icon">🔧</div>
+                                        <span>Travaux importants</span>
+                                        <small>Gros œuvre, rénovations majeures</small>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="workNeeded" name="workNeeded" required>
+                            </div>
+                            
+                            <div id="workDetails" style="display: none;">
+                                <div id="importantWork" style="display: none;">
+                                    <h5>Détail des travaux importants</h5>
+                                    <div class="work-types">
+                                        <label class="work-checkbox">
+                                            <input type="checkbox" name="importantWorkTypes" value="electricite">
+                                            <span>⚡ Électricité</span>
+                                        </label>
+                                        <label class="work-checkbox">
+                                            <input type="checkbox" name="importantWorkTypes" value="isolation">
+                                            <span>🏠 Isolation</span>
+                                        </label>
+                                        <label class="work-checkbox">
+                                            <input type="checkbox" name="importantWorkTypes" value="plomberie">
+                                            <span>🚿 Plomberie</span>
+                                        </label>
+                                        <label class="work-checkbox">
+                                            <input type="checkbox" name="importantWorkTypes" value="fenetres">
+                                            <span>🪟 Fenêtres</span>
+                                        </label>
+                                        <label class="work-checkbox">
+                                            <input type="checkbox" name="importantWorkTypes" value="sol">
+                                            <span>🔲 Sol</span>
+                                        </label>
+                                        <label class="work-checkbox">
+                                            <input type="checkbox" name="importantWorkTypes" value="autre-gros">
+                                            <span>🔨 Autres gros travaux</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div id="refreshmentWork" style="display: none;">
+                                    <h5>Détail des travaux de rafraîchissement</h5>
+                                    <div class="work-types">
+                                        <label class="work-checkbox">
+                                            <input type="checkbox" name="refreshmentWorkTypes" value="peinture">
+                                            <span>🎨 Peinture</span>
+                                        </label>
+                                        <label class="work-checkbox">
+                                            <input type="checkbox" name="refreshmentWorkTypes" value="renovation-sdb">
+                                            <span>🛁 Rénovation salle de bain</span>
+                                        </label>
+                                        <label class="work-checkbox">
+                                            <input type="checkbox" name="refreshmentWorkTypes" value="renovation-cuisine">
+                                            <span>🍳 Rénovation cuisine</span>
+                                        </label>
+                                        <label class="work-checkbox">
+                                            <input type="checkbox" name="refreshmentWorkTypes" value="autre-petit">
+                                            <span>🪄 Autres petits travaux</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="button" class="prev-btn" onclick="prevStep()">Précédent</button>
+                            <button type="button" class="next-btn" onclick="nextStep()">Suivant</button>
+                        </div>
+                    </div>
+
+                    <div class="form-step" id="step4">
+                        <h4>Diagnostic de Performance Énergétique (DPE)</h4>
+                        <div class="dpe-container">
+                            <div class="input-group">
+                                <label>Connaissez-vous le DPE de votre bien ?</label>
+                                <div class="dpe-scale">
+                                    <div class="dpe-option" data-value="A">
+                                        <span class="dpe-letter dpe-a">A</span>
+                                        <small>≤ 70 kWh/m²</small>
+                                    </div>
+                                    <div class="dpe-option" data-value="B">
+                                        <span class="dpe-letter dpe-b">B</span>
+                                        <small>71-110 kWh/m²</small>
+                                    </div>
+                                    <div class="dpe-option" data-value="C">
+                                        <span class="dpe-letter dpe-c">C</span>
+                                        <small>111-180 kWh/m²</small>
+                                    </div>
+                                    <div class="dpe-option" data-value="D">
+                                        <span class="dpe-letter dpe-d">D</span>
+                                        <small>181-250 kWh/m²</small>
+                                    </div>
+                                    <div class="dpe-option" data-value="E">
+                                        <span class="dpe-letter dpe-e">E</span>
+                                        <small>251-330 kWh/m²</small>
+                                    </div>
+                                    <div class="dpe-option" data-value="F">
+                                        <span class="dpe-letter dpe-f">F</span>
+                                        <small>331-420 kWh/m²</small>
+                                    </div>
+                                    <div class="dpe-option" data-value="G">
+                                        <span class="dpe-letter dpe-g">G</span>
+                                        <small>> 420 kWh/m²</small>
+                                    </div>
+                                </div>
+                                <div class="dpe-alternatives">
+                                    <div class="dpe-option" data-value="en-attente">
+                                        <span class="dpe-other">⏳</span>
+                                        <span>En attente</span>
+                                    </div>
+                                    <div class="dpe-option" data-value="pas-fait">
+                                        <span class="dpe-other">❓</span>
+                                        <span>Pas encore fait</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" id="dpe" name="dpe">
+                        </div>
+                        <div class="form-buttons">
+                            <button type="button" class="prev-btn" onclick="prevStep()">Précédent</button>
+                            <button type="button" class="next-btn" onclick="nextStep()">Suivant</button>
+                        </div>
+                    </div>
+
+                    <div class="form-step" id="step5">
+                        <h4>État général du bien</h4>
+                        <div class="condition-selector">
+                            <div class="condition-option" data-value="excellent">
+                                <span class="condition-icon">⭐</span>
+                                <span>Excellent</span>
+                                <small>Récent ou rénové</small>
+                            </div>
+                            <div class="condition-option" data-value="bon">
+                                <span class="condition-icon">✅</span>
+                                <span>Bon</span>
+                                <small>Bien entretenu</small>
+                            </div>
+                            <div class="condition-option" data-value="moyen">
+                                <span class="condition-icon">⚠️</span>
+                                <span>Moyen</span>
+                                <small>Quelques travaux</small>
+                            </div>
+                            <div class="condition-option" data-value="a-renover">
+                                <span class="condition-icon">🔨</span>
+                                <span>À rénover</span>
+                                <small>Gros travaux</small>
+                            </div>
+                        </div>
+                        <input type="hidden" id="condition" name="condition" required>
+                        <div class="form-buttons">
+                            <button type="button" class="prev-btn" onclick="prevStep()">Précédent</button>
+                            <button type="button" class="next-btn" onclick="nextStep()">Suivant</button>
+                        </div>
+                    </div>
+
+                    <div class="form-step" id="step6">
+                        <h4>Espaces extérieurs et annexes</h4>
+                        
+                        <div class="exteriors-container">
+                            <div class="input-group">
+                                <label>Espaces extérieurs et annexes (indiquez le nombre)</label>
+                                <div class="exterior-counters">
+                                    <div class="counter-item">
+                                        <label>🌿 Balcon(s)</label>
+                                        <div class="counter-control">
+                                            <button type="button" class="counter-btn" data-action="decrease" data-target="balconsCount">-</button>
+                                            <input type="number" id="balconsCount" name="balconsCount" value="0" min="0" max="10" readonly>
+                                            <button type="button" class="counter-btn" data-action="increase" data-target="balconsCount">+</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="counter-item">
+                                        <label>🌻 Terrasse(s)</label>
+                                        <div class="counter-control">
+                                            <button type="button" class="counter-btn" data-action="decrease" data-target="terrassesCount">-</button>
+                                            <input type="number" id="terrassesCount" name="terrassesCount" value="0" min="0" max="10" readonly>
+                                            <button type="button" class="counter-btn" data-action="increase" data-target="terrassesCount">+</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="counter-item">
+                                        <label>🏠 Cave(s)</label>
+                                        <div class="counter-control">
+                                            <button type="button" class="counter-btn" data-action="decrease" data-target="cavesCount">-</button>
+                                            <input type="number" id="cavesCount" name="cavesCount" value="0" min="0" max="5" readonly>
+                                            <button type="button" class="counter-btn" data-action="increase" data-target="cavesCount">+</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="counter-item">
+                                        <label>🚗 Garage(s)</label>
+                                        <div class="counter-control">
+                                            <button type="button" class="counter-btn" data-action="decrease" data-target="garagesCount">-</button>
+                                            <input type="number" id="garagesCount" name="garagesCount" value="0" min="0" max="5" readonly>
+                                            <button type="button" class="counter-btn" data-action="increase" data-target="garagesCount">+</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="counter-item">
+                                        <label>📦 Box(es)</label>
+                                        <div class="counter-control">
+                                            <button type="button" class="counter-btn" data-action="decrease" data-target="boxesCount">-</button>
+                                            <input type="number" id="boxesCount" name="boxesCount" value="0" min="0" max="5" readonly>
+                                            <button type="button" class="counter-btn" data-action="increase" data-target="boxesCount">+</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="counter-item">
+                                        <label>🅿️ Places de parking</label>
+                                        <div class="counter-control">
+                                            <button type="button" class="counter-btn" data-action="decrease" data-target="parkingCount">-</button>
+                                            <input type="number" id="parkingCount" name="parkingCount" value="0" min="0" max="10" readonly>
+                                            <button type="button" class="counter-btn" data-action="increase" data-target="parkingCount">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="exteriorDetails" style="display: none;">
+                                <h5>Détails des espaces extérieurs</h5>
+                                <div id="exteriorSizes"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="button" class="prev-btn" onclick="prevStep()">Précédent</button>
+                            <button type="button" class="next-btn" onclick="nextStep()">Suivant</button>
+                        </div>
+                    </div>
+
+                    <div class="form-step" id="step7">
+                        <h4>Votre projet immobilier</h4>
+                        
+                        <div class="project-container">
+                            <div class="input-group">
+                                <label>Pourquoi réalisez-vous cette estimation ?</label>
+                                <div class="project-reasons">
+                                    <div class="project-reason" data-value="vendre">
+                                        <div class="reason-icon">💰</div>
+                                        <span>Vendre</span>
+                                        <small>Je souhaite vendre mon bien</small>
+                                    </div>
+                                    <div class="project-reason" data-value="acheter">
+                                        <div class="reason-icon">🏡</div>
+                                        <span>Acheter</span>
+                                        <small>J'envisage d'acheter ce bien</small>
+                                    </div>
+                                    <div class="project-reason" data-value="autre">
+                                        <div class="reason-icon">📊</div>
+                                        <span>Autre</span>
+                                        <small>Succession, donation, curiosité...</small>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="estimationReason" name="estimationReason" required>
+                            </div>
+                            
+                            <div class="input-group">
+                                <label>Dans quel délai ?</label>
+                                <div class="project-timeline">
+                                    <div class="timeline-option" data-value="maintenant">
+                                        <span class="timeline-icon">⚡</span>
+                                        <span>Maintenant</span>
+                                    </div>
+                                    <div class="timeline-option" data-value="3-mois">
+                                        <span class="timeline-icon">📅</span>
+                                        <span>Dans les 3 mois</span>
+                                    </div>
+                                    <div class="timeline-option" data-value="6-mois">
+                                        <span class="timeline-icon">🗓️</span>
+                                        <span>Dans les 6 mois</span>
+                                    </div>
+                                    <div class="timeline-option" data-value="1-an">
+                                        <span class="timeline-icon">📆</span>
+                                        <span>Dans 1 an ou plus</span>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="projectTimeline" name="projectTimeline" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="button" class="prev-btn" onclick="prevStep()">Précédent</button>
+                            <button type="button" class="next-btn" onclick="nextStep()">Suivant</button>
+                        </div>
+                    </div>
+
+                    <div class="form-step" id="step8">
+                        <h4>Période de construction</h4>
+                        <div class="construction-periods">
+                            <div class="period-option" data-value="avant-1850">
+                                <span>🏛️ Avant 1850</span>
+                                <small>Patrimoine historique</small>
+                            </div>
+                            <div class="period-option" data-value="1850-1919">
+                                <span>🏛️ Entre 1850 et 1919</span>
+                                <small>Architecture classique</small>
+                            </div>
+                            <div class="period-option" data-value="1920-1944">
+                                <span>🏢 Entre 1920 et 1944</span>
+                                <small>Entre-deux-guerres</small>
+                            </div>
+                            <div class="period-option" data-value="1945-1969">
+                                <span>🏗️ Entre 1945 et 1969</span>
+                                <small>Reconstruction</small>
+                            </div>
+                            <div class="period-option" data-value="1970-1989">
+                                <span>🏠 Entre 1970 et 1989</span>
+                                <small>Modernisation</small>
+                            </div>
+                            <div class="period-option" data-value="1990-2006">
+                                <span>🏡 Entre 1990 et 2006</span>
+                                <small>Standards modernes</small>
+                            </div>
+                            <div class="period-option" data-value="apres-2006">
+                                <span>⭐ Après 2006</span>
+                                <small>Normes récentes</small>
+                            </div>
+                        </div>
+                        <input type="hidden" id="constructionPeriod" name="constructionPeriod">
+                        <div class="form-buttons">
+                            <button type="button" class="prev-btn" onclick="prevStep()">Précédent</button>
+                            <button type="button" class="next-btn" onclick="nextStep()">Suivant</button>
+                        </div>
+                    </div>
+
+                    <div class="form-step" id="step9">
+                        <h4>Obtenez votre estimation</h4>
+                        <p>Laissez-nous vos coordonnées pour recevoir une estimation personnalisée</p>
+                        <div class="contact-form">
+                            <div class="input-group">
+                                <label for="firstName">Prénom</label>
+                                <input type="text" id="firstName" name="firstName" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="lastName">Nom</label>
+                                <input type="text" id="lastName" name="lastName" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="phone">Téléphone</label>
+                                <input type="tel" id="phone" name="phone" required>
+                            </div>
+                        </div>
+                        
+                        <div class="consent-section">
+                            <div class="consent-checkbox">
+                                <input type="checkbox" id="consentData" name="consentData" required>
+                                <label for="consentData">
+                                    En fournissant ces informations, je consens au traitement de mes données personnelles aux finalités décrites dans la <a href="/politique-confidentialite" target="_blank">Politique de confidentialité</a>.
+                                </label>
+                            </div>
+                            
+                            <div class="consent-checkbox">
+                                <input type="checkbox" id="consentMarketing" name="consentMarketing">
+                                <label for="consentMarketing">
+                                    J'accepte de recevoir des informations commerciales de la part d'EstimPro et de ses partenaires. Je peux à tout moment retirer mon consentement en écrivant un mail à <a href="mailto:privacy@estimpro.com">privacy@estimpro.com</a>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="button" class="prev-btn" onclick="prevStep()">Précédent</button>
+                            <button type="submit" class="submit-btn">Obtenir mon estimation</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <div id="loadingModal" class="modal">
+            <div class="modal-content">
+                <div class="loader"></div>
+                <p>Calcul de votre estimation en cours...</p>
+            </div>
+        </div>
+
+        <div id="resultModal" class="modal">
+            <div class="modal-content result-content">
+                <h3>Estimation de votre bien</h3>
+                <div id="estimationResult"></div>
+                <button onclick="closeModal()" class="close-btn">Fermer</button>
+            </div>
+        </div>
+
+        <div id="dpePartnersModal" class="modal">
+            <div class="modal-content">
+                <h3>🔍 Besoin d'un diagnostic DPE ?</h3>
+                <p>Le DPE est obligatoire pour la vente ou location d'un bien. Connaissez-vous des spécialistes ?</p>
+                
+                <div class="partner-options">
+                    <button class="partner-btn" onclick="selectPartnerOption('yes')">
+                        ✅ Oui, je connais des spécialistes
+                    </button>
+                    <button class="partner-btn" onclick="selectPartnerOption('no')">
+                        ❌ Non, j'aimerais des recommandations
+                    </button>
+                </div>
+                
+                <div id="partnerRecommendations" style="display: none;">
+                    <h4>📋 Nos partenaires certifiés</h4>
+                    <div class="partners-list">
+                        <div class="partner-card">
+                            <h5>🏢 DiagPro Expertise</h5>
+                            <p>📍 Paris, Lyon, Marseille</p>
+                            <p>📞 01 23 45 67 89</p>
+                            <p>💰 À partir de 120€</p>
+                            <small>⭐ 4.8/5 - 500+ avis</small>
+                        </div>
+                        <div class="partner-card">
+                            <h5>🔍 Expert Diag France</h5>
+                            <p>📍 Partout en France</p>
+                            <p>📞 01 98 76 54 32</p>
+                            <p>💰 À partir de 100€</p>
+                            <small>⭐ 4.7/5 - 800+ avis</small>
+                        </div>
+                        <div class="partner-card">
+                            <h5>🏠 Diag Immobilier Plus</h5>
+                            <p>📍 Toulouse, Bordeaux, Nantes</p>
+                            <p>📞 05 11 22 33 44</p>
+                            <p>💰 À partir de 110€</p>
+                            <small>⭐ 4.9/5 - 300+ avis</small>
+                        </div>
+                    </div>
+                    <p class="partner-note">
+                        💡 <strong>Conseil :</strong> N'hésitez pas à comparer les tarifs et demander plusieurs devis.
+                    </p>
+                </div>
+                
+                <button onclick="closeDpeModal()" class="btn btn-primary" style="margin-top: 1rem;">
+                    Continuer l'estimation
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 EstimPro. Tous droits réservés. - <a href="/mentions-legales" style="color: white;">Mentions légales</a> - <a href="/politique-confidentialite" style="color: white;">Politique de confidentialité</a></p>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

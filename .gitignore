@@ -74,7 +74,7 @@ typings/
 
 # gatsby files
 .cache/
-public
+# public - Commenté car nous avons besoin du dossier public pour notre app
 
 # vuepress build output
 .vuepress/dist
