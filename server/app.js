@@ -56,19 +56,41 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Fix for deployment - handle different deployment environments
 let publicPath;
+const fs = require('fs');
+
 if (process.env.NODE_ENV === 'production') {
-    // Check if we're in a Render environment with src directory
-    if (process.cwd().includes('/src')) {
-        publicPath = path.join(process.cwd(), '../public');
-    } else {
-        publicPath = path.join(process.cwd(), 'public');
+    console.log('Production environment detected');
+    console.log('Current working directory:', process.cwd());
+    console.log('__dirname:', __dirname);
+    
+    // List directory contents to debug
+    console.log('Contents of current directory:', fs.readdirSync(process.cwd()));
+    console.log('Contents of parent directory:', fs.readdirSync(path.join(process.cwd(), '..')));
+    
+    // Try multiple possible paths
+    const possiblePaths = [
+        path.join(__dirname, '../public'),
+        path.join(process.cwd(), 'public'),
+        path.join(process.cwd(), '../public'),
+        '/opt/render/project/src/public',
+        '/opt/render/project/public'
+    ];
+    
+    for (const testPath of possiblePaths) {
+        if (fs.existsSync(testPath)) {
+            publicPath = testPath;
+            console.log('Found public directory at:', publicPath);
+            break;
+        }
+    }
+    
+    if (!publicPath) {
+        console.error('Could not find public directory!');
+        publicPath = path.join(__dirname, '../public');
     }
 } else {
     publicPath = path.join(__dirname, '../public');
 }
-
-console.log('Current working directory:', process.cwd());
-console.log('Public path:', publicPath);
 
 app.use(express.static(publicPath));
 
