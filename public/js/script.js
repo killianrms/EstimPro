@@ -471,6 +471,23 @@ function showResult(estimation) {
     
     document.getElementById('resultModal').style.display = 'block';
     document.body.classList.add('modal-open');
+    
+    // Ajouter un bouton pour continuer après l'estimation
+    setTimeout(() => {
+        const resultModal = document.getElementById('resultModal');
+        const modalContent = resultModal.querySelector('.modal-content');
+        if (!modalContent.querySelector('.continue-btn')) {
+            const continueBtn = document.createElement('button');
+            continueBtn.className = 'continue-btn btn btn-primary';
+            continueBtn.textContent = 'Continuer';
+            continueBtn.style.marginTop = '1rem';
+            continueBtn.onclick = () => {
+                closeModal();
+                showThankYouPage();
+            };
+            modalContent.appendChild(continueBtn);
+        }
+    }, 100);
 }
 
 function closeModal() {
@@ -501,4 +518,40 @@ window.onclick = function(event) {
     if (event.target === loadingModal) {
         hideLoadingModal();
     }
+}
+
+function showThankYouPage() {
+    const formContainer = document.querySelector('.form-container');
+    formContainer.innerHTML = `
+        <div class="thank-you-container" style="text-align: center; padding: 3rem;">
+            <h2 style="color: #667eea; margin-bottom: 2rem;">🎉 Merci pour votre confiance !</h2>
+            
+            <p style="font-size: 1.1rem; margin-bottom: 2rem;">
+                Votre estimation a été enregistrée avec succès. 
+                Un de nos experts immobiliers pourrait vous contacter prochainement pour affiner cette estimation.
+            </p>
+            
+            <div class="thank-you-actions" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 3rem;">
+                <button onclick="location.reload()" class="btn btn-primary" style="padding: 1rem 2rem;">
+                    🏠 Nouvelle estimation
+                </button>
+                <button onclick="window.location.href='/'" class="btn btn-secondary" style="padding: 1rem 2rem;">
+                    🏡 Retour à l'accueil
+                </button>
+            </div>
+            
+            <div style="margin-top: 3rem; padding: 2rem; background: #f8f9fa; border-radius: 10px;">
+                <h3 style="margin-bottom: 1rem;">💡 Conseils pour vendre au meilleur prix</h3>
+                <ul style="text-align: left; max-width: 600px; margin: 0 auto;">
+                    <li>Réalisez les petits travaux de rafraîchissement</li>
+                    <li>Mettez en valeur votre bien (home staging)</li>
+                    <li>Choisissez le bon moment pour vendre</li>
+                    <li>Faites appel à un professionnel pour vous accompagner</li>
+                </ul>
+            </div>
+        </div>
+    `;
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }

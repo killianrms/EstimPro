@@ -8,6 +8,7 @@
 - [ ] **Barre de progression visuelle** - Remplacer les étapes textuelles par une vraie barre de progression
 - [ ] **Animations** - Ajouter des transitions fluides entre les étapes
 - [ ] **Prévisualisation PDF** - Permettre de télécharger l'estimation en PDF
+- [ ] **Page de remerciement** - Rediriger après l'estimation avec options (nouvelle estimation, contact agent, etc.)
 - [ ] **Comparateur** - Comparer plusieurs estimations côte à côte
 - [ ] **Historique** - Permettre aux utilisateurs de retrouver leurs anciennes estimations (avec code unique)
 - [ ] **Multi-langue** - Support anglais/espagnol pour les investisseurs étrangers
@@ -33,6 +34,7 @@
   - Nuisances sonores
   - Performance énergétique détaillée
 - [ ] **Données marché en temps réel** - Intégrer APIs immobilières (SeLoger, LeBonCoin)
+- [ ] **API prix au m² France entière** - Rechercher et intégrer une API avec les prix du m² pour toutes les villes françaises (DVF, Notaires, MeilleursAgents, etc.)
 - [ ] **Tendances du marché** - Prédire l'évolution du prix sur 1-5 ans
 
 ## 🛠️ Améliorations techniques
@@ -75,14 +77,6 @@
 - [ ] **Gestes tactiles** - Swipe entre les étapes
 - [ ] **Mode hors-ligne** - Continuer même sans connexion
 
-## 💰 Monétisation potentielle
-
-- [ ] **Version Pro** - Estimations détaillées payantes
-- [ ] **API payante** - Pour les agences immobilières
-- [ ] **Publicité ciblée** - Bannières pour services immobiliers
-- [ ] **Partenariats** - Avec diagnostiqueurs, notaires, etc.
-- [ ] **Leads qualifiés** - Vendre les contacts aux agences (avec consentement)
-- [ ] **Abonnement mensuel** - Pour les pros avec features avancées
 
 ## 🗑️ À supprimer/nettoyer
 
@@ -131,7 +125,7 @@
 5. **Confirmation visuelle** - Après soumission du formulaire
 6. **Loading spinners** - Pendant les requêtes API
 7. **Tri des villes** - Par ordre alphabétique dans l'admin
-8. **Format téléphone** - Validation et formatage auto
+8. **Format téléphone** - Formatage automatique (06 12 34 56 78) et validation du format
 9. **Liens footer** - Réseaux sociaux, contact, etc.
 10. **Easter egg** - Konami code ou autre surprise fun 🎮
 
