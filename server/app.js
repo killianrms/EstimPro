@@ -54,10 +54,21 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Fix for deployment - use absolute path from project root
-const publicPath = process.env.NODE_ENV === 'production' 
-    ? path.join(process.cwd(), 'public')
-    : path.join(__dirname, '../public');
+// Fix for deployment - handle different deployment environments
+let publicPath;
+if (process.env.NODE_ENV === 'production') {
+    // Check if we're in a Render environment with src directory
+    if (process.cwd().includes('/src')) {
+        publicPath = path.join(process.cwd(), '../public');
+    } else {
+        publicPath = path.join(process.cwd(), 'public');
+    }
+} else {
+    publicPath = path.join(__dirname, '../public');
+}
+
+console.log('Current working directory:', process.cwd());
+console.log('Public path:', publicPath);
 
 app.use(express.static(publicPath));
 
