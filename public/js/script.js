@@ -407,7 +407,6 @@ document.addEventListener('DOMContentLoaded', function() {
     restoreFormData();
     
     // Sauvegarder automatiquement les données du formulaire
-    const form = document.getElementById('estimationForm');
     const inputs = form.querySelectorAll('input[type="text"], input[type="number"], input[type="email"], input[type="tel"], select, textarea');
     
     inputs.forEach(input => {
@@ -692,3 +691,10 @@ function showThankYouPage() {
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+// Exposer les fonctions globalement pour les boutons onclick
+window.nextStep = nextStep;
+window.prevStep = prevStep;
+window.closeModal = closeModal;
+window.closeDpeModal = closeDpeModal;
+window.selectPartnerOption = selectPartnerOption;
