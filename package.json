@@ -5,7 +5,9 @@
   "main": "server/app.js",
   "scripts": {
     "start": "node server/app.js",
-    "dev": "nodemon server/app.js"
+    "dev": "nodemon server/app.js",
+    "build": "echo 'No build step required'",
+    "postinstall": "node server/database/init.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

@@ -54,7 +54,12 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(express.static(path.join(__dirname, '../public')));
+// Fix for deployment - use absolute path from project root
+const publicPath = process.env.NODE_ENV === 'production' 
+    ? path.join(process.cwd(), 'public')
+    : path.join(__dirname, '../public');
+
+app.use(express.static(publicPath));
 
 // Authentication middleware
 app.use(requireAuth);
@@ -64,26 +69,26 @@ app.use('/api/admin', authRoutes);
 app.use('/api/admin', adminRoutes);
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/index.html'));
+    res.sendFile(path.join(publicPath, 'index.html'));
 });
 
 app.get('/admin/login', (req, res) => {
     if (req.session.isAuthenticated) {
         return res.redirect('/admin');
     }
-    res.sendFile(path.join(__dirname, '../public/admin-login.html'));
+    res.sendFile(path.join(publicPath, 'admin-login.html'));
 });
 
 app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/admin.html'));
+    res.sendFile(path.join(publicPath, 'admin.html'));
 });
 
 app.get('/politique-confidentialite', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/politique-confidentialite.html'));
+    res.sendFile(path.join(publicPath, 'politique-confidentialite.html'));
 });
 
 app.get('/mentions-legales', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/mentions-legales.html'));
+    res.sendFile(path.join(publicPath, 'mentions-legales.html'));
 });
 
 initDatabase().then(() => {
