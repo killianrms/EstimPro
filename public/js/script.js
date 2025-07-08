@@ -3,8 +3,30 @@ const totalSteps = 9;
 
 function updateProgress() {
     const progress = (currentStep / totalSteps) * 100;
-    document.getElementById('progressBar').style.width = progress + '%';
-    document.getElementById('currentStep').textContent = currentStep;
+    const progressBar = document.getElementById('progressBar');
+    const currentStepSpan = document.getElementById('currentStep');
+    
+    if (progressBar) {
+        progressBar.style.width = progress + '%';
+    }
+    
+    if (currentStepSpan) {
+        currentStepSpan.textContent = currentStep;
+    }
+    
+    // Mettre à jour les indicateurs d'étapes visuels
+    const progressSteps = document.querySelectorAll('.progress-step');
+    progressSteps.forEach((step, index) => {
+        if (index < currentStep - 1) {
+            step.classList.add('completed');
+            step.classList.remove('active');
+        } else if (index === currentStep - 1) {
+            step.classList.add('active');
+            step.classList.remove('completed');
+        } else {
+            step.classList.remove('active', 'completed');
+        }
+    });
 }
 
 function nextStep() {
@@ -117,6 +139,13 @@ function validateCurrentStep() {
                 return false;
             }
             
+            // Validation du téléphone
+            const cleanPhone = phone.replace(/\s/g, '');
+            if (!/^0[1-9]\d{8}$/.test(cleanPhone)) {
+                alert('Veuillez entrer un numéro de téléphone français valide (10 chiffres)');
+                return false;
+            }
+            
             if (!validateEmail(email)) {
                 alert('Veuillez saisir un email valide');
                 return false;
@@ -136,6 +165,85 @@ function validateCurrentStep() {
 function validateEmail(email) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
+}
+
+// Fonction de formatage du téléphone
+function formatPhoneNumber(value) {
+    // Supprimer tous les caractères non numériques
+    const cleaned = value.replace(/\D/g, '');
+    
+    // Limiter à 10 chiffres
+    const limited = cleaned.substring(0, 10);
+    
+    // Formater en XX XX XX XX XX
+    const match = limited.match(/^(\d{0,2})(\d{0,2})(\d{0,2})(\d{0,2})(\d{0,2})$/);
+    
+    if (match) {
+        return [match[1], match[2], match[3], match[4], match[5]]
+            .filter(group => group)
+            .join(' ');
+    }
+    
+    return value;
+}
+
+// Gestion du mode sombre
+function initDarkMode() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+}
+
+// Initialiser le mode sombre
+initDarkMode();
+
+// Sauvegarder les données du formulaire
+function saveFormData() {
+    const form = document.getElementById('estimationForm');
+    if (!form) return;
+    
+    const formData = new FormData(form);
+    const data = {};
+    
+    for (let [key, value] of formData.entries()) {
+        data[key] = value;
+    }
+    
+    localStorage.setItem('estimationFormData', JSON.stringify(data));
+}
+
+// Restaurer les données du formulaire
+function restoreFormData() {
+    const savedData = localStorage.getItem('estimationFormData');
+    if (!savedData) return;
+    
+    try {
+        const data = JSON.parse(savedData);
+        const form = document.getElementById('estimationForm');
+        
+        Object.keys(data).forEach(key => {
+            const input = form.elements[key];
+            if (input && input.type !== 'checkbox' && input.type !== 'radio') {
+                input.value = data[key];
+            }
+        });
+        
+        // Restaurer les sélections de type de propriété
+        if (data.propertyType) {
+            const propertyTypes = document.querySelectorAll('.property-type');
+            propertyTypes.forEach(type => {
+                if (type.dataset.value === data.propertyType) {
+                    type.click();
+                }
+            });
+        }
+    } catch (e) {
+        console.error('Erreur lors de la restauration des données:', e);
+    }
+}
+
+// Effacer les données sauvegardées après soumission
+function clearSavedFormData() {
+    localStorage.removeItem('estimationFormData');
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -294,6 +402,28 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     updateProgress();
+    
+    // Restaurer les données sauvegardées
+    restoreFormData();
+    
+    // Sauvegarder automatiquement les données du formulaire
+    const form = document.getElementById('estimationForm');
+    const inputs = form.querySelectorAll('input[type="text"], input[type="number"], input[type="email"], input[type="tel"], select, textarea');
+    
+    inputs.forEach(input => {
+        input.addEventListener('input', () => {
+            saveFormData();
+        });
+    });
+    
+    // Formatage automatique du téléphone
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            const formatted = formatPhoneNumber(e.target.value);
+            e.target.value = formatted;
+        });
+    }
 });
 
 function updateFieldsVisibility(propertyType) {
@@ -390,6 +520,13 @@ function updateExteriorDetails() {
 }
 
 function submitEstimation() {
+    // Ajouter le spinner au bouton
+    const submitBtn = document.querySelector('.submit-btn');
+    if (submitBtn) {
+        submitBtn.classList.add('btn-loading');
+        submitBtn.disabled = true;
+    }
+    
     showLoadingModal();
     
     const formData = new FormData(document.getElementById('estimationForm'));

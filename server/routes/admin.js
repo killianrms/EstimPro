@@ -220,7 +220,7 @@ router.put('/estimation/:id/status', (req, res) => {
 
 // Obtenir les villes disponibles pour les filtres
 router.get('/cities', (req, res) => {
-    db.all('SELECT DISTINCT city FROM estimations WHERE city IS NOT NULL ORDER BY city', (err, rows) => {
+    db.all('SELECT DISTINCT city FROM estimations WHERE city IS NOT NULL ORDER BY city COLLATE NOCASE ASC', (err, rows) => {
         if (err) {
             console.error('Erreur récupération villes:', err);
             return res.status(500).json({ success: false, message: 'Erreur serveur' });

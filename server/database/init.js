@@ -228,7 +228,6 @@ const insertDefaultPriceData = () => {
             });
             
             stmt.finalize();
-            console.log('✅ Données de prix par défaut insérées');
         }
     });
 };

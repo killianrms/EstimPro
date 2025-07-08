@@ -37,13 +37,11 @@ function initAutocomplete() {
                 components: extractAddressComponents(place.address_components)
             };
 
-            console.log('Selected address:', selectedAddress);
             
             const city = selectedAddress.components.city || selectedAddress.components.locality;
             const postalCode = selectedAddress.components.postal_code;
             
             if (city) {
-                console.log(`City: ${city}, Postal Code: ${postalCode}`);
             }
         });
 

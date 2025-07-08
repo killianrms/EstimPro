@@ -40,7 +40,6 @@ router.post('/login',
                         });
                     }
                     
-                    console.log('Session saved:', req.session);
                     res.json({
                         success: true,
                         message: 'Connexion réussie'

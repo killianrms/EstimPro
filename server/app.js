@@ -106,8 +106,6 @@ app.get('/api/google-maps-script', (req, res) => {
 
 initDatabase().then(() => {
     app.listen(PORT, () => {
-        console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
-        console.log(`📊 Interface admin: http://localhost:${PORT}/admin`);
     });
 }).catch(error => {
     console.error('Erreur lors de l\'initialisation de la base de données:', error);
