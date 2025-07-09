@@ -147,6 +147,13 @@ const initDatabase = () => {
                     console.error('Erreur ajout colonne refreshmentWorkTypes:', err);
                 }
             });
+            
+            // Ajout de la colonne exteriorSizes pour stocker les tailles des extérieurs
+            db.run(`ALTER TABLE estimations ADD COLUMN exteriorSizes TEXT`, (err) => {
+                if (err && !err.message.includes('duplicate column name')) {
+                    console.error('Erreur ajout colonne exteriorSizes:', err);
+                }
+            });
 
             insertDefaultPriceData();
             resolve();
