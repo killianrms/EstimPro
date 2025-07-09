@@ -628,14 +628,6 @@
                     <div class="stat-value">${recent}</div>
                     <div class="stat-label">Cette semaine</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value">${stats.byType.length}</div>
-                    <div class="stat-label">Types de biens</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${stats.byCity.length}</div>
-                    <div class="stat-label">Villes différentes</div>
-                </div>
             `;
         }
 
@@ -896,6 +888,20 @@
             return '';
         }
 
+        function formatConstructionPeriod(period) {
+            if (!period) return 'N/A';
+            
+            const periodLabels = {
+                'avant-1950': 'Avant 1950',
+                '1950-1970': 'Entre 1950 et 1970',
+                '1970-1990': 'Entre 1970 et 1990',
+                '1990-2006': 'Entre 1990 et 2006',
+                'apres-2006': 'Après 2006'
+            };
+            
+            return periodLabels[period] || period;
+        }
+
         function displayDetails(est) {
             const propertyTypeLabels = {
                 'appartement': 'Appartement',
@@ -936,7 +942,7 @@
                         <p><strong>Surface:</strong> ${est.surface} m²</p>
                         <p><strong>Nombre de pièces:</strong> ${est.rooms}</p>
                         <p><strong>État:</strong> ${conditionLabels[est.condition] || est.condition}</p>
-                        <p><strong>Année construction:</strong> ${est.year || 'N/A'}</p>
+                        <p><strong>Année construction:</strong> ${formatConstructionPeriod(est.year)}</p>
                         ${est.floor ? `<p><strong>Étage:</strong> ${est.floor}</p>` : ''}
                     </div>
                     
@@ -959,13 +965,6 @@
                         <h4>💰 Estimation</h4>
                         <p class="price-range">${est.estimatedPrice.toLocaleString('fr-FR')} - ${est.estimatedPriceMax.toLocaleString('fr-FR')} €</p>
                         <p><strong>Prix au m²:</strong> ${est.pricePerSqm.toLocaleString('fr-FR')} €</p>
-                    </div>
-                    
-                    <div class="detail-section">
-                        <h4>📅 Informations système</h4>
-                        <p><strong>Date de création:</strong> ${new Date(est.createdAt).toLocaleDateString('fr-FR')}</p>
-                        <p><strong>Statut:</strong> ${getStatusLabel(est.status || 'nouveau')}</p>
-                        ${est.notes ? `<p><strong>Notes:</strong> ${est.notes}</p>` : ''}
                     </div>
                 </div>
             `;
