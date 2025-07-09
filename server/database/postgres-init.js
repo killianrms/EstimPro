@@ -22,7 +22,7 @@ const initDatabase = async () => {
         condition TEXT NOT NULL,
         estimationReason TEXT,
         projectTimeline TEXT,
-        year INTEGER,
+        year TEXT,
         firstName TEXT NOT NULL,
         lastName TEXT NOT NULL,
         email TEXT NOT NULL,
@@ -62,6 +62,20 @@ const initDatabase = async () => {
         lastUpdated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Migration: Correction du type de la colonne year si nécessaire
+    try {
+      await pool.query(`
+        ALTER TABLE estimations 
+        ALTER COLUMN year TYPE TEXT;
+      `);
+      console.log('Colonne year migrée vers TEXT');
+    } catch (migrationError) {
+      // Ignorer l'erreur si la colonne est déjà du bon type
+      if (!migrationError.message.includes('cannot alter type')) {
+        console.log('Migration year non nécessaire ou déjà effectuée');
+      }
+    }
 
     // Insertion des données de prix par défaut
     await insertDefaultPriceData();

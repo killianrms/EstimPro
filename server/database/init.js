@@ -20,7 +20,7 @@ const initDatabase = () => {
                     condition TEXT NOT NULL,
                     estimationReason TEXT,
                     projectTimeline TEXT,
-                    year INTEGER,
+                    year TEXT,
                     firstName TEXT NOT NULL,
                     lastName TEXT NOT NULL,
                     email TEXT NOT NULL,
