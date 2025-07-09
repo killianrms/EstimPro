@@ -40,7 +40,8 @@
 ### Backend
 - **Node.js** - Runtime JavaScript
 - **Express.js** - Framework web
-- **SQLite** - Base de données
+- **SQLite** - Base de données (développement local)
+- **PostgreSQL** - Base de données (production sur Render)
 - **bcryptjs** - Chiffrement des mots de passe
 - **express-validator** - Validation des données
 - **helmet** - Sécurité HTTP
@@ -118,6 +119,8 @@ SESSION_SECRET=votre_secret_ultra_secure
 
 ## 🗄️ Structure de la base de données
 
+**Mode automatique :** L'application utilise SQLite en local et PostgreSQL sur Render automatiquement.
+
 ### Table `estimations`
 - Informations du bien (adresse, type, surface, etc.)
 - Données client (nom, email, téléphone)
@@ -128,6 +131,8 @@ SESSION_SECRET=votre_secret_ultra_secure
 ### Table `price_data`
 - Prix au m² par ville et type de bien
 - Données pré-remplies pour les principales villes françaises
+
+**Important :** Les données sont persistantes sur Render grâce à PostgreSQL. Chaque redéploiement conserve les données.
 
 ## 📊 Administration
 
@@ -151,17 +156,33 @@ npm start
 npm run dev
 
 # Générer un hash de mot de passe pour l'admin
-node -e "console.log(require('bcryptjs').hashSync('votre_mot_de_passe', 10))"
+node scripts/generate-admin-password.js votre_mot_de_passe
 ```
 
 ## 🚀 Déploiement
 
-### Déploiement sur Heroku, Railway, ou Render
+### Déploiement sur Render (Recommandé)
+
+L'application est optimisée pour Render avec PostgreSQL :
+
+1. **Fork/Clone** le projet sur votre GitHub
+2. **Connecter** votre repo à Render
+3. **Configurer** les variables d'environnement :
+   - `GOOGLE_PLACES_API_KEY` : Votre clé API Google Places
+   - `ADMIN_USERNAME` : Nom d'utilisateur admin (par défaut: admin)
+   - `ADMIN_PASSWORD_HASH` : Hash généré avec le script
+4. **Déployer** - PostgreSQL se configure automatiquement
+5. **Tester** l'application déployée
+
+**Important :** Render crée automatiquement une base PostgreSQL. Les données sont persistantes lors des redéploiements.
+
+### Déploiement sur Railway ou Heroku
 
 1. **Configurer les variables d'environnement** sur la plateforme
-2. **Pusher le code** vers le dépôt connecté
-3. **Vérifier que PORT** est configuré automatiquement
-4. **Tester l'application** déployée
+2. **Ajouter** un service PostgreSQL si nécessaire
+3. **Pusher le code** vers le dépôt connecté
+4. **Vérifier que PORT** est configuré automatiquement
+5. **Tester l'application** déployée
 
 ### Déploiement sur VPS
 
@@ -202,6 +223,8 @@ Le système inclut des prix au m² pour les principales villes françaises :
 - Paris, Lyon, Marseille, Toulouse, Nice
 - Nantes, Strasbourg, Montpellier, Bordeaux
 - Lille, Rennes, et autres villes importantes
+
+**Note :** Les données sont automatiquement insérées lors du premier déploiement sur Render.
 
 ## 🤝 Contribution
 
