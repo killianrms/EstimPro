@@ -12,9 +12,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm install` - Install all dependencies (automatically initializes SQLite database via postinstall)
 - `npm run build` - Placeholder script (no build step currently required)
 
+### Database Management
+- Manual initialization: `node server/database/init.js`
+- Migration script: `node scripts/add-exterior-sizes.js` - Adds exteriorSizes column to estimations table
+- Generate admin password hash: `node scripts/generate-admin-password.js [password]`
+
 ### Database
 - Database auto-initializes on `npm install` via `postinstall` script
-- Manual initialization: `node server/database/init.js`
 - SQLite database files are gitignored - each deployment starts fresh
 
 ## Architecture Overview
@@ -41,6 +45,7 @@ This is a French real estate estimation web application ("EstimPro") built with 
 
 **Tables:**
 - `estimations` - Stores all property estimations with user details and calculated prices
+  - Includes exteriorSizes column (JSON) for storing balcony/terrace/garage dimensions
 - `price_data` - Pre-populated price per square meter data for French cities by property type
 
 ### Key Features
@@ -66,12 +71,15 @@ This is a French real estate estimation web application ("EstimPro") built with 
 **Default Credentials:**
 - Username: admin
 - Password: admin123 (hash stored in auth.js)
+- Use `node scripts/generate-admin-password.js [password]` to generate new password hashes
 
 **Features:**
 - View all estimations with pagination
 - Export to Excel (XLSX format)
 - Delete estimations
 - Statistics by city and property type
+- Status management (nouveau, en-cours, traité, rejeté)
+- Notes system for processing details
 
 ### Configuration
 
@@ -81,7 +89,7 @@ This is a French real estate estimation web application ("EstimPro") built with 
 - `SESSION_SECRET` - Session secret for production
 - `ADMIN_USERNAME` - Admin username (default: admin)
 - `ADMIN_PASSWORD_HASH` - Bcrypt hash of admin password
-  - Generate hash: `node -e "console.log(require('bcryptjs').hashSync('your_password', 10))"`
+  - Generate hash: `node scripts/generate-admin-password.js [password]`
 - `GOOGLE_PLACES_API_KEY` - Required for address autocomplete functionality
 
 ### Google Places Integration

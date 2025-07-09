@@ -7,7 +7,7 @@ const session = require('express-session');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
-const { initDatabase } = require('./database/init');
+const { initDatabase } = require('./database/db');
 const estimationRoutes = require('./routes/estimation');
 const adminRoutes = require('./routes/admin');
 const authRoutes = require('./routes/auth');

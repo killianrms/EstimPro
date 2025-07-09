@@ -1,6 +1,6 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const { db } = require('../database/init');
+const { get, run } = require('../database/query-adapter');
 
 const router = express.Router();
 
@@ -118,87 +118,79 @@ router.post('/estimate', [
         LIMIT 1
     `;
     
-    db.get(query, [city, data.propertyType, postalCode], (err, row) => {
-        if (err) {
+    get(query, [city, data.propertyType, postalCode])
+        .then(row => {
+            let pricePerSqm = row ? row.pricePerSqm : 3000;
+            
+            const estimation = calculateEstimation(data, pricePerSqm);
+            
+            const insertQuery = `
+                INSERT INTO estimations (
+                    address, propertyType, surface, rooms, bedrooms, floor, dpe, 
+                    condition, estimationReason, projectTimeline, year,
+                    firstName, lastName, email, phone,
+                    estimatedPrice, estimatedPriceMax, pricePerSqm,
+                    city, postalCode,
+                    balconsCount, terrassesCount, cavesCount, garagesCount, boxesCount, parkingCount,
+                    elevator, multiFloor, workNeeded, importantWorkTypes, refreshmentWorkTypes,
+                    exteriorSizes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `;
+            
+            // Process work types arrays to strings
+            const importantWorkTypes = data.importantWorkTypes ? (Array.isArray(data.importantWorkTypes) ? data.importantWorkTypes.join(',') : data.importantWorkTypes) : null;
+            const refreshmentWorkTypes = data.refreshmentWorkTypes ? (Array.isArray(data.refreshmentWorkTypes) ? data.refreshmentWorkTypes.join(',') : data.refreshmentWorkTypes) : null;
+            
+            // Collecter les tailles des extérieurs
+            const exteriorSizes = {};
+            
+            // Balcons
+            for (let i = 1; i <= (data.balconsCount || 0); i++) {
+                const size = data[`balconsSize${i}`];
+                if (size) {
+                    if (!exteriorSizes.balcons) exteriorSizes.balcons = [];
+                    exteriorSizes.balcons.push(parseFloat(size));
+                }
+            }
+            
+            // Terrasses
+            for (let i = 1; i <= (data.terrassesCount || 0); i++) {
+                const size = data[`terrassesSize${i}`];
+                if (size) {
+                    if (!exteriorSizes.terrasses) exteriorSizes.terrasses = [];
+                    exteriorSizes.terrasses.push(parseFloat(size));
+                }
+            }
+            
+            const exteriorSizesJson = Object.keys(exteriorSizes).length > 0 ? JSON.stringify(exteriorSizes) : null;
+            
+            return run(insertQuery, [
+                data.address, data.propertyType, data.surface, 
+                data.rooms || null, data.bedrooms || null, data.floor || null, data.dpe || null,
+                data.condition, data.estimationReason || null, data.projectTimeline || null, data.year || null,
+                data.firstName, data.lastName, data.email, data.phone,
+                estimation.estimatedPrice, estimation.estimatedPriceMax, estimation.pricePerSqm,
+                city, postalCode,
+                data.balconsCount || 0, data.terrassesCount || 0, data.cavesCount || 0, 
+                data.garagesCount || 0, data.boxesCount || 0, data.parkingCount || 0,
+                data.elevator || null, data.multiFloor || null, data.workNeeded || null,
+                importantWorkTypes, refreshmentWorkTypes,
+                exteriorSizesJson
+            ]).then(() => {
+                res.json({
+                    success: true,
+                    estimation: estimation,
+                    message: 'Estimation calculée avec succès'
+                });
+            });
+        })
+        .catch(err => {
             console.error('Erreur base de données:', err);
-            return res.status(500).json({
+            res.status(500).json({
                 success: false,
                 message: 'Erreur serveur'
             });
-        }
-        
-        let pricePerSqm = row ? row.pricePerSqm : 3000;
-        
-        const estimation = calculateEstimation(data, pricePerSqm);
-        
-        const insertQuery = `
-            INSERT INTO estimations (
-                address, propertyType, surface, rooms, bedrooms, floor, dpe, 
-                condition, estimationReason, projectTimeline, year,
-                firstName, lastName, email, phone,
-                estimatedPrice, estimatedPriceMax, pricePerSqm,
-                city, postalCode,
-                balconsCount, terrassesCount, cavesCount, garagesCount, boxesCount, parkingCount,
-                elevator, multiFloor, workNeeded, importantWorkTypes, refreshmentWorkTypes,
-                exteriorSizes
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-        
-        // Process work types arrays to strings
-        const importantWorkTypes = data.importantWorkTypes ? (Array.isArray(data.importantWorkTypes) ? data.importantWorkTypes.join(',') : data.importantWorkTypes) : null;
-        const refreshmentWorkTypes = data.refreshmentWorkTypes ? (Array.isArray(data.refreshmentWorkTypes) ? data.refreshmentWorkTypes.join(',') : data.refreshmentWorkTypes) : null;
-        
-        // Collecter les tailles des extérieurs
-        const exteriorSizes = {};
-        
-        // Balcons
-        for (let i = 1; i <= (data.balconsCount || 0); i++) {
-            const size = data[`balconsSize${i}`];
-            if (size) {
-                if (!exteriorSizes.balcons) exteriorSizes.balcons = [];
-                exteriorSizes.balcons.push(parseFloat(size));
-            }
-        }
-        
-        // Terrasses
-        for (let i = 1; i <= (data.terrassesCount || 0); i++) {
-            const size = data[`terrassesSize${i}`];
-            if (size) {
-                if (!exteriorSizes.terrasses) exteriorSizes.terrasses = [];
-                exteriorSizes.terrasses.push(parseFloat(size));
-            }
-        }
-        
-        const exteriorSizesJson = Object.keys(exteriorSizes).length > 0 ? JSON.stringify(exteriorSizes) : null;
-        
-        db.run(insertQuery, [
-            data.address, data.propertyType, data.surface, 
-            data.rooms || null, data.bedrooms || null, data.floor || null, data.dpe || null,
-            data.condition, data.estimationReason || null, data.projectTimeline || null, data.year || null,
-            data.firstName, data.lastName, data.email, data.phone,
-            estimation.estimatedPrice, estimation.estimatedPriceMax, estimation.pricePerSqm,
-            city, postalCode,
-            data.balconsCount || 0, data.terrassesCount || 0, data.cavesCount || 0, 
-            data.garagesCount || 0, data.boxesCount || 0, data.parkingCount || 0,
-            data.elevator || null, data.multiFloor || null, data.workNeeded || null,
-            importantWorkTypes, refreshmentWorkTypes,
-            exteriorSizesJson
-        ], function(err) {
-            if (err) {
-                console.error('Erreur sauvegarde:', err);
-                return res.status(500).json({
-                    success: false,
-                    message: 'Erreur lors de la sauvegarde'
-                });
-            }
-            
-            res.json({
-                success: true,
-                estimation: estimation,
-                message: 'Estimation calculée avec succès'
-            });
         });
-    });
 });
 
 module.exports = router;
