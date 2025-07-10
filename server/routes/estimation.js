@@ -120,6 +120,9 @@ router.post('/estimate', [
     
     get(query, [city, data.propertyType, postalCode])
         .then(row => {
+            console.log('🔍 Recherche prix pour:', { city, propertyType: data.propertyType, postalCode });
+            console.log('📊 Résultat de la requête:', row);
+            
             let pricePerSqm = row ? row.pricePerSqm : 3000;
             
             const estimation = calculateEstimation(data, pricePerSqm);
@@ -185,7 +188,10 @@ router.post('/estimate', [
             });
         })
         .catch(err => {
-            console.error('Erreur base de données:', err);
+            console.error('❌ Erreur base de données:', err);
+            console.error('📋 Données reçues:', data);
+            console.error('🏙️ Ville extraite:', city);
+            console.error('📮 Code postal:', postalCode);
             res.status(500).json({
                 success: false,
                 message: 'Erreur serveur'

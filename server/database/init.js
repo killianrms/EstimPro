@@ -33,7 +33,19 @@ const initDatabase = () => {
                     status TEXT DEFAULT 'nouveau',
                     processedAt DATETIME,
                     notes TEXT,
-                    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+                    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    balconsCount INTEGER DEFAULT 0,
+                    terrassesCount INTEGER DEFAULT 0,
+                    cavesCount INTEGER DEFAULT 0,
+                    garagesCount INTEGER DEFAULT 0,
+                    boxesCount INTEGER DEFAULT 0,
+                    parkingCount INTEGER DEFAULT 0,
+                    elevator TEXT,
+                    multiFloor TEXT,
+                    workNeeded TEXT,
+                    importantWorkTypes TEXT,
+                    refreshmentWorkTypes TEXT,
+                    exteriorSizes TEXT
                 )
             `, (err) => {
                 if (err) {
@@ -60,100 +72,6 @@ const initDatabase = () => {
                 }
             });
 
-            // Migration pour ajouter les nouvelles colonnes si elles n'existent pas
-            db.run(`ALTER TABLE estimations ADD COLUMN status TEXT DEFAULT 'nouveau'`, (err) => {
-                // Ignore l'erreur si la colonne existe déjà
-                if (err && !err.message.includes('duplicate column name')) {
-                    console.error('Erreur ajout colonne status:', err);
-                }
-            });
-            
-            db.run(`ALTER TABLE estimations ADD COLUMN processedAt DATETIME`, (err) => {
-                if (err && !err.message.includes('duplicate column name')) {
-                    console.error('Erreur ajout colonne processedAt:', err);
-                }
-            });
-            
-            db.run(`ALTER TABLE estimations ADD COLUMN notes TEXT`, (err) => {
-                if (err && !err.message.includes('duplicate column name')) {
-                    console.error('Erreur ajout colonne notes:', err);
-                }
-            });
-            
-            // Ajout des colonnes pour les espaces extérieurs
-            db.run(`ALTER TABLE estimations ADD COLUMN balconsCount INTEGER DEFAULT 0`, (err) => {
-                if (err && !err.message.includes('duplicate column name')) {
-                    console.error('Erreur ajout colonne balconsCount:', err);
-                }
-            });
-            
-            db.run(`ALTER TABLE estimations ADD COLUMN terrassesCount INTEGER DEFAULT 0`, (err) => {
-                if (err && !err.message.includes('duplicate column name')) {
-                    console.error('Erreur ajout colonne terrassesCount:', err);
-                }
-            });
-            
-            db.run(`ALTER TABLE estimations ADD COLUMN cavesCount INTEGER DEFAULT 0`, (err) => {
-                if (err && !err.message.includes('duplicate column name')) {
-                    console.error('Erreur ajout colonne cavesCount:', err);
-                }
-            });
-            
-            db.run(`ALTER TABLE estimations ADD COLUMN garagesCount INTEGER DEFAULT 0`, (err) => {
-                if (err && !err.message.includes('duplicate column name')) {
-                    console.error('Erreur ajout colonne garagesCount:', err);
-                }
-            });
-            
-            db.run(`ALTER TABLE estimations ADD COLUMN boxesCount INTEGER DEFAULT 0`, (err) => {
-                if (err && !err.message.includes('duplicate column name')) {
-                    console.error('Erreur ajout colonne boxesCount:', err);
-                }
-            });
-            
-            db.run(`ALTER TABLE estimations ADD COLUMN parkingCount INTEGER DEFAULT 0`, (err) => {
-                if (err && !err.message.includes('duplicate column name')) {
-                    console.error('Erreur ajout colonne parkingCount:', err);
-                }
-            });
-            
-            // Ajout des colonnes pour les autres informations
-            db.run(`ALTER TABLE estimations ADD COLUMN elevator TEXT`, (err) => {
-                if (err && !err.message.includes('duplicate column name')) {
-                    console.error('Erreur ajout colonne elevator:', err);
-                }
-            });
-            
-            db.run(`ALTER TABLE estimations ADD COLUMN multiFloor TEXT`, (err) => {
-                if (err && !err.message.includes('duplicate column name')) {
-                    console.error('Erreur ajout colonne multiFloor:', err);
-                }
-            });
-            
-            db.run(`ALTER TABLE estimations ADD COLUMN workNeeded TEXT`, (err) => {
-                if (err && !err.message.includes('duplicate column name')) {
-                    console.error('Erreur ajout colonne workNeeded:', err);
-                }
-            });
-            
-            db.run(`ALTER TABLE estimations ADD COLUMN importantWorkTypes TEXT`, (err) => {
-                if (err && !err.message.includes('duplicate column name')) {
-                    console.error('Erreur ajout colonne importantWorkTypes:', err);
-                }
-            });
-            
-            db.run(`ALTER TABLE estimations ADD COLUMN refreshmentWorkTypes TEXT`, (err) => {
-                if (err && !err.message.includes('duplicate column name')) {
-                    console.error('Erreur ajout colonne refreshmentWorkTypes:', err);
-                }
-            });
-            
-            // Ajout de la colonne exteriorSizes pour stocker les tailles des extérieurs
-            db.run(`ALTER TABLE estimations ADD COLUMN exteriorSizes TEXT`, (err) => {
-                if (err && !err.message.includes('duplicate column name')) {
-                    console.error('Erreur ajout colonne exteriorSizes:', err);
-                }
-            });
 
             insertDefaultPriceData();
             resolve();
