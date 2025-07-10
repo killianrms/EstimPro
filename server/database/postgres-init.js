@@ -4,9 +4,10 @@ const { Pool } = require('pg');
 let connectionConfig;
 
 if (process.env.DATABASE_URL) {
+  // SSL requis pour les connexions PostgreSQL externes
   connectionConfig = {
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    ssl: { rejectUnauthorized: false }
   };
 } else if (process.env.NODE_ENV === 'production') {
   // Configuration de secours pour Render si DATABASE_URL n'est pas encore configurée

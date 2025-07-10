@@ -1,8 +1,55 @@
 const express = require('express');
 const XLSX = require('xlsx');
-const { get, all, run } = require('../database/query-adapter');
+const { get, all, run, isPostgres } = require('../database/query-adapter');
 
 const router = express.Router();
+
+// Fonction pour normaliser les clés des objets (PostgreSQL retourne en minuscules)
+const normalizeKeys = (obj) => {
+    if (!obj) return obj;
+    
+    const normalized = {};
+    for (const [key, value] of Object.entries(obj)) {
+        // Convertir les clés PostgreSQL minuscules vers camelCase
+        const camelKey = key.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase())
+                           .replace(/^([a-z])/, (match, letter) => letter.toLowerCase());
+        
+        // Mapper les clés spécifiques PostgreSQL -> camelCase
+        const keyMapping = {
+            'firstname': 'firstName',
+            'lastname': 'lastName',
+            'propertytype': 'propertyType',
+            'createdat': 'createdAt',
+            'processedat': 'processedAt',
+            'estimatedprice': 'estimatedPrice',
+            'estimatedpricemax': 'estimatedPriceMax',
+            'pricepersqm': 'pricePerSqm',
+            'postalcode': 'postalCode',
+            'balconscount': 'balconsCount',
+            'terrassescount': 'terrassesCount',
+            'cavescount': 'cavesCount',
+            'garagescount': 'garagesCount',
+            'boxescount': 'boxesCount',
+            'parkingcount': 'parkingCount',
+            'multifloor': 'multiFloor',
+            'workneeded': 'workNeeded',
+            'importantworktypes': 'importantWorkTypes',
+            'refreshmentworktypes': 'refreshmentWorkTypes',
+            'estimationreason': 'estimationReason',
+            'projecttimeline': 'projectTimeline',
+            'exteriorsizes': 'exteriorSizes'
+        };
+        
+        const finalKey = keyMapping[key.toLowerCase()] || camelKey || key;
+        normalized[finalKey] = value;
+    }
+    return normalized;
+};
+
+const normalizeArray = (arr) => {
+    if (!Array.isArray(arr)) return arr;
+    return arr.map(normalizeKeys);
+};
 
 router.get('/estimations', async (req, res) => {
     try {
@@ -51,14 +98,18 @@ router.get('/estimations', async (req, res) => {
         const countRow = await get(countQuery, whereParams);
         const rows = await all(dataQuery, [...whereParams, limit, offset]);
         
+        // Normaliser les données pour PostgreSQL
+        const normalizedRows = normalizeArray(rows);
+        const normalizedCount = normalizeKeys(countRow);
+        
         res.json({
             success: true,
-            data: rows,
+            data: normalizedRows,
             pagination: {
                 page,
                 limit,
-                total: countRow.total,
-                pages: Math.ceil(countRow.total / limit)
+                total: normalizedCount.total,
+                pages: Math.ceil(normalizedCount.total / limit)
             }
         });
     } catch (err) {
@@ -69,8 +120,6 @@ router.get('/estimations', async (req, res) => {
 
 router.get('/stats', async (req, res) => {
     try {
-        const { isPostgres } = require('../database/query-adapter');
-        
         const queries = {
             total: 'SELECT COUNT(*) as count FROM estimations',
             byType: 'SELECT propertyType, COUNT(*) as count FROM estimations GROUP BY propertyType',
@@ -85,7 +134,8 @@ router.get('/stats', async (req, res) => {
         
         for (const [key, query] of Object.entries(queries)) {
             try {
-                results[key] = await all(query);
+                const data = await all(query);
+                results[key] = normalizeArray(data);
             } catch (err) {
                 console.error(`Erreur stats ${key}:`, err);
                 results[key] = [];
@@ -115,8 +165,9 @@ router.get('/export', async (req, res) => {
         `;
         
         const rows = await all(query);
+        const normalizedRows = normalizeArray(rows);
         
-        const worksheet = XLSX.utils.json_to_sheet(rows.map(row => ({
+        const worksheet = XLSX.utils.json_to_sheet(normalizedRows.map(row => ({
             'ID': row.id,
             'Adresse': row.address,
             'Type': row.propertyType,
@@ -217,7 +268,11 @@ router.put('/estimation/:id/status', async (req, res) => {
 // Obtenir les villes disponibles pour les filtres
 router.get('/cities', async (req, res) => {
     try {
-        const rows = await all('SELECT DISTINCT city FROM estimations WHERE city IS NOT NULL ORDER BY city COLLATE NOCASE ASC');
+        const query = isPostgres 
+            ? 'SELECT DISTINCT city FROM estimations WHERE city IS NOT NULL ORDER BY city ASC'
+            : 'SELECT DISTINCT city FROM estimations WHERE city IS NOT NULL ORDER BY city COLLATE NOCASE ASC';
+            
+        const rows = await all(query);
         
         res.json({ success: true, cities: rows.map(row => row.city) });
     } catch (err) {
@@ -237,7 +292,10 @@ router.get('/estimation/:id', async (req, res) => {
             return res.status(404).json({ success: false, message: 'Estimation non trouvée' });
         }
         
-        res.json({ success: true, estimation: row });
+        // Normaliser les données pour PostgreSQL
+        const normalizedRow = normalizeKeys(row);
+        
+        res.json({ success: true, estimation: normalizedRow });
     } catch (err) {
         console.error('Erreur récupération estimation:', err);
         res.status(500).json({ success: false, message: 'Erreur serveur' });
