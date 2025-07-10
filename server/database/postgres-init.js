@@ -1,10 +1,23 @@
 const { Pool } = require('pg');
 
 // Configuration de la connexion PostgreSQL
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
+let connectionConfig;
+
+if (process.env.DATABASE_URL) {
+  connectionConfig = {
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  };
+} else if (process.env.NODE_ENV === 'production') {
+  // Configuration de secours pour Render si DATABASE_URL n'est pas encore configurée
+  console.log('⚠️ DATABASE_URL manquante - impossible de se connecter à PostgreSQL');
+  console.log('🔧 Veuillez créer une base PostgreSQL dans Render et lier DATABASE_URL');
+  throw new Error('DATABASE_URL est requis pour PostgreSQL en production');
+} else {
+  throw new Error('Configuration PostgreSQL invalide');
+}
+
+const pool = new Pool(connectionConfig);
 
 const initDatabase = async () => {
   try {
