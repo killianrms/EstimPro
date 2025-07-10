@@ -41,7 +41,11 @@ const extractCityFromAddress = (address) => {
 };
 
 const calculateEstimation = (data, pricePerSqm) => {
-    let basePrice = pricePerSqm * parseInt(data.surface);
+    // Validation des entrées
+    const surface = parseInt(data.surface) || 50;
+    pricePerSqm = isNaN(pricePerSqm) || pricePerSqm <= 0 ? 3000 : pricePerSqm;
+    
+    let basePrice = pricePerSqm * surface;
     
     const conditionMultipliers = {
         'excellent': 1.1,
@@ -67,11 +71,12 @@ const calculateEstimation = (data, pricePerSqm) => {
     const variance = 0.1;
     const minPrice = Math.round(basePrice * (1 - variance));
     const maxPrice = Math.round(basePrice * (1 + variance));
+    const adjustedPricePerSqm = Math.round(pricePerSqm * conditionMultiplier);
     
     return {
-        estimatedPrice: minPrice,
-        estimatedPriceMax: maxPrice,
-        pricePerSqm: Math.round(pricePerSqm * conditionMultiplier)
+        estimatedPrice: isNaN(minPrice) ? 150000 : minPrice,
+        estimatedPriceMax: isNaN(maxPrice) ? 180000 : maxPrice,
+        pricePerSqm: isNaN(adjustedPricePerSqm) ? 3000 : adjustedPricePerSqm
     };
 };
 
@@ -120,10 +125,11 @@ router.post('/estimate', [
     
     get(query, [city, data.propertyType, postalCode])
         .then(row => {
-            console.log('🔍 Recherche prix pour:', { city, propertyType: data.propertyType, postalCode });
-            console.log('📊 Résultat de la requête:', row);
+            // PostgreSQL retourne les colonnes en minuscules
+            let pricePerSqm = row ? (row.pricePerSqm || row.pricepersqm) : 3000;
             
-            let pricePerSqm = row ? row.pricePerSqm : 3000;
+            // Validation pour éviter les NaN
+            pricePerSqm = isNaN(pricePerSqm) || pricePerSqm <= 0 ? 3000 : pricePerSqm;
             
             const estimation = calculateEstimation(data, pricePerSqm);
             
@@ -188,10 +194,7 @@ router.post('/estimate', [
             });
         })
         .catch(err => {
-            console.error('❌ Erreur base de données:', err);
-            console.error('📋 Données reçues:', data);
-            console.error('🏙️ Ville extraite:', city);
-            console.error('📮 Code postal:', postalCode);
+            console.error('Erreur base de données:', err);
             res.status(500).json({
                 success: false,
                 message: 'Erreur serveur'
