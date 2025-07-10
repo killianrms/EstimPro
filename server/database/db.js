@@ -19,12 +19,13 @@ if (process.env.DATABASE_URL || process.env.FORCE_POSTGRES === 'true') {
   db = postgres.pool;
   initDatabase = postgres.initDatabase;
 } else if (isRenderProduction) {
-  // Mode de secours : PostgreSQL sur Render même sans DATABASE_URL
-  console.log('⚠️ Mode SECOURS: Tentative PostgreSQL sans DATABASE_URL');
-  console.log('🔧 Veuillez configurer DATABASE_URL dans Render dashboard');
-  const postgres = require('./postgres-init');
-  db = postgres.pool;
-  initDatabase = postgres.initDatabase;
+  // Mode de secours : SQLite sur Render en attendant PostgreSQL
+  console.log('⚠️ Mode SECOURS: Utilisation de SQLite sur Render');
+  console.log('🔧 IMPORTANT: Configurez DATABASE_URL pour PostgreSQL et persistance');
+  console.log('📋 Données perdues à chaque redéploiement avec SQLite !');
+  const sqlite = require('./init');
+  db = sqlite.db;
+  initDatabase = sqlite.initDatabase;
 } else {
   // Mode SQLite (développement local)
   console.log('💻 Mode DÉVELOPPEMENT: Utilisation de SQLite');
