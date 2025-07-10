@@ -11,6 +11,7 @@ const { initDatabase } = require('./database/db');
 const estimationRoutes = require('./routes/estimation');
 const adminRoutes = require('./routes/admin');
 const authRoutes = require('./routes/auth');
+const healthRoutes = require('./routes/health');
 const { requireAuth } = require('./middleware/auth');
 
 const app = express();
@@ -67,6 +68,7 @@ app.use(requireAuth);
 app.use('/api', estimationRoutes);
 app.use('/api/admin', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api', healthRoutes);
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(publicPath, 'index.html'));
@@ -104,9 +106,22 @@ app.get('/api/google-maps-script', (req, res) => {
     `);
 });
 
+// Démarrage de l'application avec initialisation de la base de données
+console.log('🚀 Démarrage de l\'application EstimPro...');
+console.log('📍 Environnement:', process.env.NODE_ENV || 'development');
+console.log('🔧 Port:', PORT);
+
 initDatabase().then(() => {
     app.listen(PORT, () => {
+        console.log(`✅ Serveur démarré sur le port ${PORT}`);
+        console.log(`🌐 Application disponible sur http://localhost:${PORT}`);
+        if (process.env.DATABASE_URL) {
+            console.log('💾 Base de données: PostgreSQL (production)');
+        } else {
+            console.log('💾 Base de données: SQLite (développement)');
+        }
     });
 }).catch(error => {
-    console.error('Erreur lors de l\'initialisation de la base de données:', error);
+    console.error('❌ Erreur fatale lors de l\'initialisation:', error);
+    process.exit(1);
 });

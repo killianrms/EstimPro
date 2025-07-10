@@ -8,6 +8,17 @@ const pool = new Pool({
 
 const initDatabase = async () => {
   try {
+    console.log('🔄 Initialisation de la base de données PostgreSQL...');
+    
+    // Test de connexion
+    try {
+      const testResult = await pool.query('SELECT NOW()');
+      console.log('✅ Connexion PostgreSQL réussie:', testResult.rows[0].now);
+    } catch (connError) {
+      console.error('❌ Erreur de connexion PostgreSQL:', connError.message);
+      throw connError;
+    }
+    
     // Création de la table estimations
     await pool.query(`
       CREATE TABLE IF NOT EXISTS estimations (
@@ -80,7 +91,21 @@ const initDatabase = async () => {
     // Insertion des données de prix par défaut
     await insertDefaultPriceData();
     
-    console.log('Base de données PostgreSQL initialisée avec succès');
+    // Vérification que les tables existent
+    const tablesCheck = await pool.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public' 
+      AND table_name IN ('estimations', 'price_data')
+    `);
+    console.log('📊 Tables créées:', tablesCheck.rows.map(r => r.table_name).join(', '));
+    
+    // Compter les enregistrements existants
+    const estimationsCount = await pool.query('SELECT COUNT(*) FROM estimations');
+    const priceDataCount = await pool.query('SELECT COUNT(*) FROM price_data');
+    console.log(`📈 Données existantes: ${estimationsCount.rows[0].count} estimations, ${priceDataCount.rows[0].count} prix`);
+    
+    console.log('✅ Base de données PostgreSQL initialisée avec succès');
   } catch (error) {
     console.error('Erreur lors de l\'initialisation de la base de données:', error);
     throw error;
@@ -93,7 +118,10 @@ const insertDefaultPriceData = async () => {
     const result = await pool.query('SELECT COUNT(*) FROM price_data');
     const count = parseInt(result.rows[0].count);
     
+    console.log(`📊 Nombre de prix existants: ${count}`);
+    
     if (count === 0) {
+      console.log('📝 Insertion des données de prix par défaut...');
       const defaultPrices = [
         { city: 'Paris', postalCode: '75001', pricePerSqm: 12000, propertyType: 'appartement' },
         { city: 'Paris', postalCode: '75001', pricePerSqm: 11000, propertyType: 'maison' },
@@ -158,7 +186,9 @@ const insertDefaultPriceData = async () => {
         );
       }
       
-      console.log('Données de prix par défaut insérées');
+      console.log(`✅ ${defaultPrices.length} données de prix par défaut insérées`);
+    } else {
+      console.log('ℹ️ Les données de prix existent déjà, pas d\'insertion');
     }
   } catch (error) {
     console.error('Erreur lors de l\'insertion des données de prix:', error);
